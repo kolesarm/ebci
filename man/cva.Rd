@@ -16,7 +16,8 @@ cva(B, kurt = Inf, alpha = 0.05, check = TRUE)
 \item{check}{Check critical value by solving linear program}
 }
 \value{
-Critical value for constructing two-sided confidence intervals.
+Critical value for constructing two-sided confidence intervals. TODO:
+also returns least favorable info
 }
 \description{
 Compute average coverage critical value under moment constraints.

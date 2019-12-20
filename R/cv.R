@@ -171,7 +171,8 @@ CVb <- function(B, alpha=0.05) {
 #' @param kurt Bound on the kurtosis of the bias
 #' @param alpha Determines CI level, \eqn{1-\alpha}{1-alpha}.
 #' @param check Check critical value by solving linear program
-#' @return Critical value for constructing two-sided confidence intervals.
+#' @return Critical value for constructing two-sided confidence intervals. TODO:
+#'     also returns least favorable info
 #' @examples
 #' ## Without imposing a constraint on kurtosis
 #' cva(1, kurt=Inf)
@@ -182,13 +183,6 @@ cva <- function(B, kurt=Inf, alpha=0.05, check=TRUE) {
     if (kurt==1 | B==0) {
         list(cv=CVb(B, alpha), size=alpha, x=c(0, B), p=c(0, 1))
     } else {
-        ## We now know B is not zero. TODO
-        ## if (interpolate) {
-        ##     load(file="../output/cva.rda")
-        ##     tbl <- cv_tbl[cv_tbl$alpha==0.05, 1:3]
-        ##     limits <- c(tbl$cv[which.min(tbl$B < B & tbl$kurt <= kurt)-1],
-        ##                 tbl$cv[which.max(tbl$B > B & tbl$kurt >= kurt)])
-
         ## Critical value under kappa=Inf and kappa=1 to get bounds on cv
         limits <- c(CVb(B, alpha)-0.01, stats::qnorm(1-alpha/2)+10*B+0.01)
         limits[2] <- stats::uniroot(function(c0) rho(B^2, c0)-alpha, limits,

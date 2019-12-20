@@ -6,8 +6,9 @@ store_cva <- function(B, kurt, alpha=0.05, check=TRUE) {
     df
 }
 
-Bs <-  seq(0, 5, by=0.01)
+Bs <-  seq(0, 5, by=0.001)
 kurt <- c(seq(1, 10, length.out=181), seq(10, 100, by=5))
+## Takes 4 min / 40 min
 kurt <- 1:4
 
 cv_tbl5 <- data.frame(store_cva(Bs, kurt, alpha=0.05), alpha=0.05)
