@@ -8,8 +8,14 @@ Authors@R:
            email = "kolesarmi@googlemail.com",
            comment = c(ORCID = "0000-0002-2482-7796"))
 Description: What the package does (one paragraph).
+Depends: R (>= 3.6.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.0.2
+Suggests:
+    spelling, 
+    testthat (>= 2.1.0),
+    lpSolve
+Language: en-US
