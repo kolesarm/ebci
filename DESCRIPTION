@@ -15,7 +15,7 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.0.2
 Suggests:
-    spelling, 
+    spelling,
     testthat (>= 2.1.0),
     lpSolve
 Language: en-US

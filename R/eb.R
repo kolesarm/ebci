@@ -40,5 +40,5 @@ wopt <- function(S, kappa, alpha=0.05, cv_tbl=NULL, maxbias=10) {
 #' @export
 wl2 <- function(S, kappa=Inf, alpha=0.05) {
     w <- S^2/(1+S^2)
-    c(w=w, length=cva(B, kurt=kappa, alpha=alpha, check=TRUE)$cv*w, B=1/S)
+    c(w=w, length=cva(1/S, kurt=kappa, alpha=alpha, check=TRUE)$cv*w, B=1/S)
 }
