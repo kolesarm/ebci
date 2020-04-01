@@ -13,9 +13,11 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Suggests:
     spelling,
     testthat (>= 2.1.0),
     lpSolve
 Language: en-US
+URL: https://github.com/kolesarm/ebci
+BugReports: https://github.com/kolesarm/ebci/issues

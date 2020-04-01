@@ -4,7 +4,8 @@
 \name{cz}
 \alias{cz}
 \title{Neighborhood effects data from Chetty and Hendren (2018)}
-\format{A data frame with 741 rows corresponding to commuting zones (CZ) and
+\format{
+A data frame with 741 rows corresponding to commuting zones (CZ) and
 10 columns corresponding to the variables:
 
 \describe{
@@ -43,7 +44,8 @@ household earnings at age 26 relative to others in the same birth cohort for
 stayers (children who grew up in the CZ and did not move) with parents at the
 75th percentile of national income distribution.}
 
-}}
+}
+}
 \source{
 \url{https://opportunityinsights.org/data/?paper_id=599}
 }

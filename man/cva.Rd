@@ -7,23 +7,38 @@
 cva(B, kurt = Inf, alpha = 0.05, check = TRUE)
 }
 \arguments{
-\item{B}{Bound on the square root of the average squared bias}
+\item{B}{Bound on the square root of the average squared standardized bias,
+\eqn{\sqrt{m_{2}}}{sqrt(m_2)}}
 
-\item{kurt}{Bound on the kurtosis of the bias}
+\item{kurt}{Bound on the kurtosis of the bias, \eqn{\kappa}{kappa}}
 
 \item{alpha}{Determines CI level, \eqn{1-\alpha}{1-alpha}.}
 
-\item{check}{Check critical value by solving linear program}
+\item{check}{If \code{TRUE}, verify accuracy of the solution by solving a
+finite-grid approximation (by discretizing the support of the bias) to
+the primal linear programing problem, and checking that it agrees with
+the dual solution.}
 }
 \value{
-Critical value for constructing two-sided confidence intervals. TODO:
-also returns least favorable info
+Returns a list with 4 components: \describe{
+
+\item{cv}{Critical value for constructing two-sided confidence intervals.}
+
+\item{size}{\code{alpha}}
+
+\item{x}{Support points for the least favorable distribution for the squared
+standardized bias, \eqn{b^2}.}
+
+\item{p}{Probabilities associated with the support points.}
+
+}
 }
 \description{
-Compute average coverage critical value under moment constraints.
+Computes the critical value \eqn{cva_{\alpha}(m_{2}, \kappa)}{cva_alpha(m_2,
+kappa)} from Armstrong, Kolesár, and Plagborg-Møller (2020).
 }
 \examples{
-## Without imposing a constraint on kurtosis
+## Critical value without imposing a constraint on kurtosis
 cva(1, kurt=Inf)
 ## With a constraint
 cva(1, kurt=3)
