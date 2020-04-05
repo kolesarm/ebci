@@ -158,10 +158,11 @@ rho2 <- function(mu, chi, check=TRUE, len=5000) {
                                 const.rhs = c(1, mu))
             ## 0: success, 2: infeasible
             if (opt$status!=0 | abs(rr$objective-opt$objval)>=1e-4) {
-                msg <- paste0("Linear program finds rejection", opt$objval,
-                              "direct approach finds rejection", rr$objective,
-                              "Difference>0.001. This happened for",
-                              "chi=", chi, "mu[1]=", mu[1], "mu[2]=", mu[2])
+                msg <- paste0("Linear program finds rejection ", opt$objval,
+                              ". Direct approach finds rejection ", rr$objective,
+                              ". Difference>0.001. This happened for ",
+                              "chi = ", chi, ", mu[1] = ", mu[1],
+                              ", mu[2] = ", mu[2])
                 warning(msg)
                 return(list(size=NA, x=NA, p=NA))
             }

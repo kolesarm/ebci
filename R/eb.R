@@ -51,3 +51,97 @@ w_eb <- function(S, kappa=Inf, alpha=0.05) {
     w <- S^2/(1+S^2)
     list(w=w, length=cva(1/S, kurt=kappa, alpha=alpha, check=TRUE)$cv*w, B=1/S)
 }
+
+
+weighted.var <- function(y, w, na.rm=FALSE) {
+    if (na.rm) {
+        idx <- !is.na(y) & !is.na(w)
+        y <- y[idx]
+        w <- w[idx]
+    }
+    length(y)/(length(y)-1)*sum(w*(y-weighted.mean(y, w))^2)/sum(w)
+}
+
+#' @param kappa Use pre-specified value for kurtosis (such as Inf). If NULL,
+#'     then compute it
+ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
+                     tstat=FALSE) {
+    ## Construct model frame
+    mf <- match.call(expand.dots = FALSE)
+    m <- match(c("formula", "data", "se", "weights"), names(mf), 0L)
+    mf <- mf[c(1L, m)]
+    formula <- as.formula(formula)
+    mf$formula <- formula
+    mf[[1L]] <- quote(stats::model.frame)
+    mf <- eval(mf, parent.frame())
+    Y <- stats::model.response(mf, "numeric")
+    wgt <- as.vector(stats::model.weights(mf))
+    se <- mf$"(se)"
+    X <- model.matrix(stats::terms(formula, data = data), mf)
+
+    ## Compute delta, and moments
+    Yt <- if(tstat) Y/se else Y
+    set <- if (tstat) 1L else se
+    r1 <- lm.wfit(X, Yt, wgt)
+    mu1 <- unname(r1$fitted.values)
+    ## delta <- r1$coefficients[!is.na(r1$coefficients)]
+    delta <- r1$coefficients
+    mu2 <- weighted.mean((Yt-mu1)^2-set^2, wgt)
+    if (is.null(kappa)) {
+        ## Formula without assuming epsilon_i and sigma_i are uncorrelated,
+        ## alternative is weighted.mean((Yt-mu1)^4 - 6*set^2*mu2 - 3*set^4, wgt)
+        kappa <- weighted.mean((Yt-mu1)^4 - 6*set^2*(Yt-mu1)^2 +
+                               3*set^4, wgt) / mu2^2
+        if (kappa < 1) {
+            message("Kurtosis estimate is smaller than 1, setting it to Inf")
+            kappa <- Inf
+        }
+    }
+    if (tstat) {
+        op <- w_opt(sqrt(mu2), kappa, alpha)
+        eb <- w_eb(sqrt(mu2), kappa, alpha)
+
+        th_eb <- se*(mu1+eb$w*(Yt-mu1))
+        th_op <- se*(mu1+op$w*(Yt-mu1))
+        ncov_pa <- rho2(c(1/mu2, kappa/mu2^2), qnorm(1-alpha/2)/sqrt(eb$w),
+                       check=TRUE)$size
+    } else {
+        ## Pre-compute cva for this kurtosis
+        df <- expand.grid(B=seq(0, 20, length.out=2001), kurt=kappa)
+        cvj <- function(j)
+            ebci::cva(df$B[j], kurt=df$kurt[j], alpha, check=TRUE)$cv
+        cores <- max(parallel::detectCores()-1L, 1L)
+        df$cv <- unlist(parallel::mclapply(seq_len(nrow(df)), cvj, mc.cores=cores))
+        df$alpha <- alpha
+
+        ## Optimal shrinkage for each individual
+        op <- vapply(se, function(se)
+            unlist(w_opt(sqrt(mu2)/se, kappa, cv_tbl=df,
+                              alpha=alpha)), numeric(3))
+        op <- as.data.frame(t(op))
+        ## EB shrinkage
+        eb <- vapply(se, function(se)
+            unlist(w_eb(sqrt(mu2)/se, kappa, alpha)), numeric(3))
+        eb <- as.data.frame(t(eb))
+
+        th_eb <- mu1+eb$w*(Yt-mu1)
+        th_op <- mu1+op$w*(Yt-mu1)
+        par_cov <- function(se)
+            rho2(c(se^2/mu2, kappa*(se^2/mu2)^2),
+                 qnorm(1-alpha/2)*sqrt(1+se^2/mu2), check=TRUE)$size
+        ncov_pa <- vapply(se, par_cov, numeric(1))
+    }
+    df <- data.frame(w_eb=eb$w,
+                     w_opt=op$w,
+                     ncov_pa=ncov_pa,
+                     len_eb=eb$length*se,
+                     len_op=op$length*se,
+                     len_pa=sqrt(eb$w)*qnorm(1-alpha/2)*se,
+                     len_us=qnorm(1-alpha/2)*se,
+                     th_us=Y,
+                     th_eb=th_eb,
+                     th_op=th_op,
+                     se=se)
+
+    list(sqrt_mu2=sqrt(mu2), kappa=kappa, delta=delta, df=df)
+}
