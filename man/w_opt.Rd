@@ -8,8 +8,8 @@ w_opt(S, kappa, alpha = 0.05, cv_tbl = NULL)
 }
 \arguments{
 \item{S}{Square root of the signal-to-noise ratio
-\eqn{\sqrt{\mu_{2}}/\sigma}{sqrt(mu_2)/sigma}, where \sqrt{\mu_{2}}{mu_2}
-is the variance of \eqn{\theta}{theta}}
+\eqn{\sqrt{\mu_{2}}/\sigma}{sqrt(mu_2)/sigma}, where
+\eqn{\sqrt{\mu_{2}}}{mu_2} is the variance of \eqn{\theta}{theta}}
 
 \item{kappa}{Kurtosis of \eqn{\theta}{theta}}
 
@@ -21,9 +21,9 @@ is the variance of \eqn{\theta}{theta}}
 (TODO)
 }
 \description{
-Compute linear shrinkage factor \eqn{w_{opt}}{w_opt} to minimize the length of the
-resulting Empirical Bayes confidence interval (EBCI).
+Compute linear shrinkage factor \eqn{w_{opt}}{w_opt} to minimize the length
+of the resulting Empirical Bayes confidence interval (EBCI).
 }
 \examples{
-w_opt(1, 3, cv_tbl=cva_tbl[cva_tbl$kurt==3 & cva_tbl$alpha==0.05, ])
+w_opt(1, 3, cv_tbl=cva_tbl[cva_tbl$kappa==3 & cva_tbl$alpha==0.05, ])
 }

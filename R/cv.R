@@ -61,7 +61,7 @@ rt0 <- function(chi) {
 }
 
 ## \rho(m_{2}, \chi)
-rho <- function(t, chi) {
+rho0 <- function(t, chi) {
     t0 <- rt0(chi)$t0
     idx <- (t >= t0)
     res <- r(t0, chi) + (t-t0)*r1(t0, chi)
@@ -119,15 +119,16 @@ lam <- function(x0, chi) {
 }
 
 ## \rho(m_{2}, mu_{4}, \chi)
-rho2 <- function(m2, kappa, chi, check=TRUE, len=5000) {
-    r0 <- rho(m2, chi)
+rho <- function(m2, kappa, chi, check=TRUE, len=5000) {
+    r0 <- rho0(m2, chi)
     t0 <- rt0(chi)$t0
+    ip <- rt0(chi)$ip
     if (kappa == 1) {
         list(size=r(m2, chi), x=c(0, m2), p=c(0, 1))
     } else if (m2 >= t0) {
         ## Concave part of parameter space
         list(size=r0, x=c(0, m2), p=c(0, 1))
-    } else if (m2*kappa >= t0) {
+    } else if (kappa==Inf || m2*kappa >= t0) {
         ## LF under rho: (0, t0) wp (1-m2/t0, m2/t0), E[t^2]=m2*t0
         ## So here kappa doesn't bind
         list(size=r0, x=c(0, t0), p=c(1-m2/t0, m2/t0))
@@ -141,48 +142,45 @@ rho2 <- function(m2, kappa, chi, check=TRUE, len=5000) {
         obj <-  function(x0)
             r(x0, chi)+r1(x0, chi)*(m2-x0)+
                 lammax(x0)*(kappa*m2^2-2*x0*m2+x0^2)
-        rr <- stats::optimize(obj, interval=c(0, t0), tol=tol)
-        ## Optimize is a little silly and doesn't check the endpoints in case
-        ## optimum is at the boundary
-        xvals <- c(rr$minimum, 0, t0)
-        ovals <- c(rr$objective, obj(0), obj(t0))
-        rr$minimum <- xvals[which.min(ovals)]
-        rr$objective <- ovals[which.min(ovals)]
-
+        ## Optimize separately below and above \bar{t}, since there are
+        ## typically be multiple local minima
+        rb <- if (tbar >0)
+            stats::optimize(obj, interval=c(0, tbar), tol=10^3*tol)
+              else
+            list(minimum=0, objective=obj(0))
+        ra <- stats::optimize(obj, interval=c(tbar, t0), tol=10^3*tol)
+        rr <- if (rb$objective<ra$objective) rb else ra
         ## LF points
         xs0 <- sort(c(rr$minimum, lam(rr$minimum, chi)$x0))
         p <- (m2-xs0[2])/(xs0[1]-xs0[2])
         ps0 <- c(p, 1-p)
-        ## Rejection rates at these points
-        sum(c(r(xs0[1], chi), r(xs0[2], chi))*ps0)
-
-        ## TODO
-        ## abs(sum(c(r(xs0[1], chi), r(xs0[2], chi))*c(p, 1-p))-rr$objective)
-        ## Now double-check we found the optimum by solving the primal
-        ## if (check) {
-            ## ## Add m2 here for cases where it's very small, so we can satisfy
-            ## ## the constraint
-            ## xs <- sort(unique(c(m2, xs0, seq(0, t0, length.out=len))))
-            ## ## Find the optimal solution; use <= for last constraint
-            ## opt <-  lpSolve::lp(direction="max",
-            ##                     objective.in = r(xs, chi),
-            ##                     const.mat = rbind(xs^0, xs, xs^2),
-            ##                     const.dir = c("==", "==", "<="),
-            ##                     const.rhs = c(1, m2, m2^2*kappa))
-            ## ## 0: success, 2: infeasible
-            ## if (opt$status!=0 | abs(rr$objective-opt$objval)>=1e-4) {
-            ##     msg <- paste0("Linear program finds rejection ", opt$objval,
-            ##                   ". Direct approach finds rejection ", rr$objective,
-            ##                   ". Difference>0.001. This happened for ",
-            ##                   "chi = ", chi, ", m2 = ", m2,
-            ##                   ", kappa = ", kappa)
-            ##     warning(msg)
-            ##     return(list(size=NA, x=NA, p=NA))
-            ## }
-        ## }
-
-
-        list(size=unname(rr$objective), x=xs0, p=c(p, 1-p))
+        ## Rejection rates, m2, and kappa at LF solution
+        primal <- c(sum(c(r(xs0[1], chi), r(xs0[2], chi))*ps0),
+                   sum(xs0*ps0),
+                   sum(xs0^2*ps0)/sum(xs0*ps0)^2)
+        ## If LF solution close to dual, no need to check linear program
+        if (max(abs(primal-c(rr$objective, m2, kappa))) > 1e-4 && check) {
+            ## Add m2 here for cases where it's very small, so we can satisfy
+            ## the constraint
+            xs <- sort(unique(c(m2, xs0, seq(0, t0, length.out=len))))
+            ## Find the optimal solution; use <= for last constraint
+            opt <-  lpSolve::lp(direction="max",
+                                objective.in = r(xs, chi),
+                                const.mat = rbind(xs^0, xs, xs^2),
+                                const.dir = c("==", "==", "<="),
+                                const.rhs = c(1, m2, m2^2*kappa))
+            ## 0: success, 2: infeasible
+            if (opt$status!=0 | abs(rr$objective-opt$objval)>=1e-4) {
+                msg <- paste0("Linear program finds rejection ", opt$objval,
+                              ". Direct approach finds rejection ",
+                              rr$objective,
+                              ". Difference>0.001. This happened for ",
+                              "chi = ", chi, ", m2 = ", m2, ", kappa = ", kappa)
+                warning(msg)
+                return(list(size=NA, x=NA, p=NA))
+            }
+        }
+        list(size=unname(rr$objective), x=xs0, p=ps0)
     }
 }
 
@@ -228,23 +226,24 @@ cva <- function(B, kappa=Inf, alpha=0.05, check=TRUE) {
     if (kappa==1 | B==0) {
         list(cv=CVb(B, alpha), size=alpha, x=c(0, B), p=c(0, 1))
     } else {
-        ## limits: critical values under kappa=1 and kappa=Inf to get bounds on cv
+        ## limits: critical values under kappa=1 and kappa=Inf to get bounds on
+        ## cv
         lo <- CVb(B, alpha)-0.01
         limits <- c(lo, NA)
         up <- stats::qnorm(1-alpha/2)+B
-        while (rho(B^2, up) >= alpha) {
+        while (rho0(B^2, up) >= alpha) {
             lo <- up
             up <- 2*up
         }
-        limits[2] <- stats::uniroot(function(chi) rho(B^2, chi)-alpha, c(lo, up),
-                             tol=tol)$root
+        limits[2] <- stats::uniroot(function(chi) rho0(B^2, chi)-alpha,
+                                    c(lo, up), tol=tol)$root
         ## If rejection rate is already close to alpha, keep cv under kappa=Inf
-        if (rho2(B^2, kappa, limits[2])$size-alpha < -1e-5)
-            cv <- stats::uniroot(function(chi) rho2(B^2, kappa, chi,
+        if (rho(B^2, kappa, limits[2])$size-alpha < -1e-5)
+            cv <- stats::uniroot(function(chi) rho(B^2, kappa, chi,
                                             check=FALSE)$size-alpha,
                           limits, tol=tol)$root
         else
             cv <- limits[2]
-        c(cv=cv, rho2(B^2, kappa, cv, check=check, len=5000))
+        c(cv=cv, rho(B^2, kappa, cv, check=check, len=5000))
     }
 }

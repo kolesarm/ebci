@@ -8,8 +8,8 @@ w_eb(S, kappa = Inf, alpha = 0.05)
 }
 \arguments{
 \item{S}{Square root of the signal-to-noise ratio
-\eqn{\sqrt{\mu_{2}}/\sigma}{sqrt(mu_2)/sigma}, where \sqrt{\mu_{2}}{mu_2}
-is the variance of \eqn{\theta}{theta}}
+\eqn{\sqrt{\mu_{2}}/\sigma}{sqrt(mu_2)/sigma}, where
+\eqn{\sqrt{\mu_{2}}}{mu_2} is the variance of \eqn{\theta}{theta}}
 
 \item{kappa}{Kurtosis of \eqn{\theta}{theta}}
 

@@ -4,13 +4,13 @@
 \alias{cva}
 \title{Compute average coverage critical value under moment constraints.}
 \usage{
-cva(B, kurt = Inf, alpha = 0.05, check = TRUE)
+cva(B, kappa = Inf, alpha = 0.05, check = TRUE)
 }
 \arguments{
 \item{B}{Bound on the square root of the average squared standardized bias,
 \eqn{\sqrt{m_{2}}}{sqrt(m_2)}}
 
-\item{kurt}{Bound on the kurtosis of the bias, \eqn{\kappa}{kappa}}
+\item{kappa}{Bound on the kurtosis of the bias, \eqn{\kappa}{kappa}}
 
 \item{alpha}{Determines CI level, \eqn{1-\alpha}{1-alpha}.}
 
@@ -39,7 +39,7 @@ kappa)} from Armstrong, Kolesár, and Plagborg-Møller (2020).
 }
 \examples{
 ## Critical value without imposing a constraint on kurtosis
-cva(1, kurt=Inf)
+cva(1, kappa=Inf)
 ## With a constraint
-cva(1, kurt=3)
+cva(1, kappa=3)
 }

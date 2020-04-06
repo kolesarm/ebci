@@ -28,7 +28,10 @@ test_that("Simple critical value sanity checks", {
 test_that("Check large values", {
     expect_equal(lam(0, 42.2201)$x0, 1932.78377442)
     expect_equal(cva(10, 3)$cv, 24.86172217)
-    expect_equal(rho2(mu2=1, kappa=3, chi=11.9699639845401)$size, 6.0216e-05)
+    expect_equal(rho(m2=1, kappa=3, chi=11.9699639845401)$size, 6.0216e-05)
+    ## Previously this was failing
+    expect_equal(cva(B=2.8, alpha=0.1, kappa=8)$cv, 7.0779747158)
+    expect_equal(rho(2.8^2, 8, 7.1324290147839279896)$size, 0.09805099)
 })
 
 test_that("Check delta1 has crosses zero at most once", {

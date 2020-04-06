@@ -1,10 +1,10 @@
 #' Optimal shrinkage for Empirical Bayes confidence intervals
 #'
-#' Compute linear shrinkage factor \eqn{w_{opt}}{w_opt} to minimize the length of the
-#' resulting Empirical Bayes confidence interval (EBCI).
+#' Compute linear shrinkage factor \eqn{w_{opt}}{w_opt} to minimize the length
+#' of the resulting Empirical Bayes confidence interval (EBCI).
 #' @param S Square root of the signal-to-noise ratio
-#'     \eqn{\sqrt{\mu_{2}}/\sigma}{sqrt(mu_2)/sigma}, where \sqrt{\mu_{2}}{mu_2}
-#'     is the variance of \eqn{\theta}{theta}
+#'     \eqn{\sqrt{\mu_{2}}/\sigma}{sqrt(mu_2)/sigma}, where
+#'     \eqn{\sqrt{\mu_{2}}}{mu_2} is the variance of \eqn{\theta}{theta}
 #' @param kappa Kurtosis of \eqn{\theta}{theta}
 #' @param alpha determines CI level
 #' @param cv_tbl Optionally, supply a data frame of critical values. (TODO)
@@ -62,6 +62,7 @@ weighted.var <- function(y, w, na.rm=FALSE) {
     length(y)/(length(y)-1)*sum(w*(y-weighted.mean(y, w))^2)/sum(w)
 }
 
+#' EBCIs in applications
 #' @param kappa Use pre-specified value for kurtosis (such as Inf). If NULL,
 #'     then compute it
 ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
