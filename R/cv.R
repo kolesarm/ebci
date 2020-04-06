@@ -119,55 +119,69 @@ lam <- function(x0, chi) {
 }
 
 ## \rho(m_{2}, mu_{4}, \chi)
-rho2 <- function(mu, chi, check=TRUE, len=5000) {
-    r0 <- rho(mu[1], chi)
+rho2 <- function(m2, kappa, chi, check=TRUE, len=5000) {
+    r0 <- rho(m2, chi)
     t0 <- rt0(chi)$t0
-    if (mu[2] == mu[1]^2) {
-        list(size=r(mu[1], chi), x=c(0, mu[1]), p=c(0, 1))
-    } else if (mu[1] >= t0) {
+    if (kappa == 1) {
+        list(size=r(m2, chi), x=c(0, m2), p=c(0, 1))
+    } else if (m2 >= t0) {
         ## Concave part of parameter space
-        list(size=r0, x=c(0, mu[1]), p=c(0, 1))
-    } else if (mu[2] >= mu[1]*t0) {
-        ## LF under rho: (0, t0) wp (1-mu[1]/t0, mu[1]/t0), E[t^2]=mu[1]*t0
-        ## So here mu4 doesn't bind
-        list(size=r0, x=c(0, t0), p=c(1-mu[1]/t0, mu[1]/t0))
+        list(size=r0, x=c(0, m2), p=c(0, 1))
+    } else if (m2*kappa >= t0) {
+        ## LF under rho: (0, t0) wp (1-m2/t0, m2/t0), E[t^2]=m2*t0
+        ## So here kappa doesn't bind
+        list(size=r0, x=c(0, t0), p=c(1-m2/t0, m2/t0))
     } else {
         ## First determine where delta(x, 0) is maximized
         tbar <- lam(0, chi)$x0
         lammax <- function(x0) {
             ## delta(x, x0) maximized at 0
-            ifelse(x0 >= tbar, delta(0, x0, chi), lam(x0, chi)$lam)
+            ifelse(x0 >= tbar, delta(0, x0, chi), max(lam(x0, chi)$lam, 0))
         }
         obj <-  function(x0)
-            r(x0, chi)+r1(x0, chi)*(mu[1]-x0)+
-                lammax(x0)*(mu[2]-2*x0*mu[1]+x0^2)
-        rr <- stats::optimize(obj, interval=c(0, t0), tol=1e-8)
+            r(x0, chi)+r1(x0, chi)*(m2-x0)+
+                lammax(x0)*(kappa*m2^2-2*x0*m2+x0^2)
+        rr <- stats::optimize(obj, interval=c(0, t0), tol=tol)
+        ## Optimize is a little silly and doesn't check the endpoints in case
+        ## optimum is at the boundary
+        xvals <- c(rr$minimum, 0, t0)
+        ovals <- c(rr$objective, obj(0), obj(t0))
+        rr$minimum <- xvals[which.min(ovals)]
+        rr$objective <- ovals[which.min(ovals)]
+
         ## LF points
         xs0 <- sort(c(rr$minimum, lam(rr$minimum, chi)$x0))
+        p <- (m2-xs0[2])/(xs0[1]-xs0[2])
+        ps0 <- c(p, 1-p)
+        ## Rejection rates at these points
+        sum(c(r(xs0[1], chi), r(xs0[2], chi))*ps0)
 
+        ## TODO
+        ## abs(sum(c(r(xs0[1], chi), r(xs0[2], chi))*c(p, 1-p))-rr$objective)
         ## Now double-check we found the optimum by solving the primal
-        if (check) {
-            ## Add mu[1] here for cases where it's very small, so we can satisfy
-            ## the constraint
-            xs <- sort(unique(c(mu, xs0, seq(0, t0, length.out=len))))
-            ## Find the optimal solution; use <= for last constraint
-            opt <-  lpSolve::lp(direction="max",
-                                objective.in = r(xs, chi),
-                                const.mat = rbind(xs^0, xs, xs^2),
-                                const.dir = c("==", "==", "<="),
-                                const.rhs = c(1, mu))
-            ## 0: success, 2: infeasible
-            if (opt$status!=0 | abs(rr$objective-opt$objval)>=1e-4) {
-                msg <- paste0("Linear program finds rejection ", opt$objval,
-                              ". Direct approach finds rejection ", rr$objective,
-                              ". Difference>0.001. This happened for ",
-                              "chi = ", chi, ", mu[1] = ", mu[1],
-                              ", mu[2] = ", mu[2])
-                warning(msg)
-                return(list(size=NA, x=NA, p=NA))
-            }
-        }
-        p <- (mu[1]-xs0[2])/(xs0[1]-xs0[2])
+        ## if (check) {
+            ## ## Add m2 here for cases where it's very small, so we can satisfy
+            ## ## the constraint
+            ## xs <- sort(unique(c(m2, xs0, seq(0, t0, length.out=len))))
+            ## ## Find the optimal solution; use <= for last constraint
+            ## opt <-  lpSolve::lp(direction="max",
+            ##                     objective.in = r(xs, chi),
+            ##                     const.mat = rbind(xs^0, xs, xs^2),
+            ##                     const.dir = c("==", "==", "<="),
+            ##                     const.rhs = c(1, m2, m2^2*kappa))
+            ## ## 0: success, 2: infeasible
+            ## if (opt$status!=0 | abs(rr$objective-opt$objval)>=1e-4) {
+            ##     msg <- paste0("Linear program finds rejection ", opt$objval,
+            ##                   ". Direct approach finds rejection ", rr$objective,
+            ##                   ". Difference>0.001. This happened for ",
+            ##                   "chi = ", chi, ", m2 = ", m2,
+            ##                   ", kappa = ", kappa)
+            ##     warning(msg)
+            ##     return(list(size=NA, x=NA, p=NA))
+            ## }
+        ## }
+
+
         list(size=unname(rr$objective), x=xs0, p=c(p, 1-p))
     }
 }
@@ -186,7 +200,7 @@ CVb <- function(B, alpha=0.05) {
 #' kappa)} from Armstrong, Kolesár, and Plagborg-Møller (2020).
 #' @param B Bound on the square root of the average squared standardized bias,
 #'     \eqn{\sqrt{m_{2}}}{sqrt(m_2)}
-#' @param kurt Bound on the kurtosis of the bias, \eqn{\kappa}{kappa}
+#' @param kappa Bound on the kurtosis of the bias, \eqn{\kappa}{kappa}
 #' @param alpha Determines CI level, \eqn{1-\alpha}{1-alpha}.
 #' @param check If \code{TRUE}, verify accuracy of the solution by solving a
 #'     finite-grid approximation (by discretizing the support of the bias) to
@@ -206,12 +220,12 @@ CVb <- function(B, alpha=0.05) {
 #' }
 #' @examples
 #' ## Critical value without imposing a constraint on kurtosis
-#' cva(1, kurt=Inf)
+#' cva(1, kappa=Inf)
 #' ## With a constraint
-#' cva(1, kurt=3)
+#' cva(1, kappa=3)
 #' @export
-cva <- function(B, kurt=Inf, alpha=0.05, check=TRUE) {
-    if (kurt==1 | B==0) {
+cva <- function(B, kappa=Inf, alpha=0.05, check=TRUE) {
+    if (kappa==1 | B==0) {
         list(cv=CVb(B, alpha), size=alpha, x=c(0, B), p=c(0, 1))
     } else {
         ## limits: critical values under kappa=1 and kappa=Inf to get bounds on cv
@@ -224,14 +238,13 @@ cva <- function(B, kurt=Inf, alpha=0.05, check=TRUE) {
         }
         limits[2] <- stats::uniroot(function(chi) rho(B^2, chi)-alpha, c(lo, up),
                              tol=tol)$root
-        mu <- c(B^2, kurt*B^4)
         ## If rejection rate is already close to alpha, keep cv under kappa=Inf
-        if (rho2(mu, limits[2])$size-alpha < -1e-5)
-            cv <- stats::uniroot(function(chi) rho2(mu, chi,
+        if (rho2(B^2, kappa, limits[2])$size-alpha < -1e-5)
+            cv <- stats::uniroot(function(chi) rho2(B^2, kappa, chi,
                                             check=FALSE)$size-alpha,
                           limits, tol=tol)$root
         else
             cv <- limits[2]
-        c(cv=cv, rho2(mu, cv, check=check, len=5000))
+        c(cv=cv, rho2(B^2, kappa, cv, check=check, len=5000))
     }
 }

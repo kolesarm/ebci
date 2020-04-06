@@ -10,7 +10,7 @@
 #' @param cv_tbl Optionally, supply a data frame of critical values. (TODO)
 #' @return (TODO)
 #' @examples
-#' w_opt(1, 3, cv_tbl=cva_tbl[cva_tbl$kurt==3 & cva_tbl$alpha==0.05, ])
+#' w_opt(1, 3, cv_tbl=cva_tbl[cva_tbl$kappa==3 & cva_tbl$alpha==0.05, ])
 #' @export
 w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
     if (!is.null(cv_tbl)) {
@@ -23,7 +23,7 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
         }
         maxbias <- max(cv_tbl$B)
     } else {
-        cv <- function(B) cva(B, kurt=kappa, alpha=alpha, check=FALSE)$cv
+        cv <- function(B) cva(B, kappa=kappa, alpha=alpha, check=FALSE)$cv
         ## Maxium bias (i.e B) is 100 to prevent numerical issues
         maxbias <- 100
     }
@@ -33,7 +33,7 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
     ## Recompute critical value, checking solution accuracy. If we're using
     ## cv_tbl, then optimum will be at one of the values of B in the table, so
     ## solution should always be accurate
-    len <- cva((1/r$minimum-1)*S, kurt=kappa, alpha=alpha,
+    len <- cva((1/r$minimum-1)*S, kappa=kappa, alpha=alpha,
                   check=TRUE)$cv*r$minimum
     if (B > maxbias-1e-4)
         warning("Corner solution: optimum reached  maximal bias/sd ratio")
@@ -49,7 +49,7 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
 #' @export
 w_eb <- function(S, kappa=Inf, alpha=0.05) {
     w <- S^2/(1+S^2)
-    list(w=w, length=cva(1/S, kurt=kappa, alpha=alpha, check=TRUE)$cv*w, B=1/S)
+    list(w=w, length=cva(1/S, kappa=kappa, alpha=alpha, check=TRUE)$cv*w, B=1/S)
 }
 
 
@@ -103,13 +103,13 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
 
         th_eb <- se*(mu1+eb$w*(Yt-mu1))
         th_op <- se*(mu1+op$w*(Yt-mu1))
-        ncov_pa <- rho2(c(1/mu2, kappa/mu2^2), qnorm(1-alpha/2)/sqrt(eb$w),
+        ncov_pa <- rho2(1/eb$w-1, kappa, qnorm(1-alpha/2)/sqrt(eb$w),
                        check=TRUE)$size
     } else {
         ## Pre-compute cva for this kurtosis
-        df <- expand.grid(B=seq(0, 20, length.out=2001), kurt=kappa)
+        df <- data.frame(B=seq(0, 20, length.out=2001), kappa=kappa)
         cvj <- function(j)
-            ebci::cva(df$B[j], kurt=df$kurt[j], alpha, check=TRUE)$cv
+            ebci::cva(df$B[j], kappa=kappa, alpha, check=TRUE)$cv
         cores <- max(parallel::detectCores()-1L, 1L)
         df$cv <- unlist(parallel::mclapply(seq_len(nrow(df)), cvj, mc.cores=cores))
         df$alpha <- alpha
@@ -127,7 +127,7 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
         th_eb <- mu1+eb$w*(Yt-mu1)
         th_op <- mu1+op$w*(Yt-mu1)
         par_cov <- function(se)
-            rho2(c(se^2/mu2, kappa*(se^2/mu2)^2),
+            rho2(se^2/mu2, kappa,
                  qnorm(1-alpha/2)*sqrt(1+se^2/mu2), check=TRUE)$size
         ncov_pa <- vapply(se, par_cov, numeric(1))
     }
