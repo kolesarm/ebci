@@ -21,7 +21,7 @@ test_that("Check shrinkage with cv_tbl ", {
 test_that("Table 1 in paper", {
     ts <- cz[!is.na(cz$theta25), ]
     eb_table <- function(res, wgt) {
-        res$df$"E[mu_2/sigma_i^2]"=res$sqrt_mu2^2/res$df$se^2
+        res$df$"E[mu_2/sigma_i^2]" <- res$sqrt_mu2^2/res$df$se^2
         l1 <- vapply(res$df, weighted.mean, FUN.VALUE=numeric(1), w=wgt)
         ret <- c("sqrt{mu_2}"=res$sqrt_mu2,
                  "kappa"=res$kappa,
@@ -40,8 +40,9 @@ test_that("Table 1 in paper", {
     ##            se25, 1/se25^2, tstat=FALSE, kappa=Inf)
     i2 <- ebci(theta25 ~ stayer25, ts[ts$pop> 300000, ],
                se25, 1/se25^2, tstat=FALSE, kappa=Inf, cores=1)
-    testthat::expect_equal(unname(round(eb_table(i2, ts$pop[ts$pop>300000]), 6)),
+    testthat::expect_equal(unname(round(eb_table(i2,
+                                                 ts$pop[ts$pop>300000]), 6)),
                            c(0.063182, Inf,  0.641786, -1.081536,  0.023759,
-                             0.315798,  0.411579, 0.147695,  0.107307, 0.091945,
-                             0.084915,  0.194525,  1.167070, 1.263687, 0.551635))
+                             0.315798, 0.411579, 0.147695, 0.107307, 0.091945,
+                             0.084915, 0.194525, 1.167070, 1.263687, 0.551635))
 })

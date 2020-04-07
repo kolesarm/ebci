@@ -1,3 +1,8 @@
 ^LICENSE\.md$
 .lintr
 ^data-raw/*$
+^doc$
+^codecov\.yml$
+^\.travis\.yml$
+.gitignore
+.lintr

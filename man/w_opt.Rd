@@ -9,21 +9,45 @@ w_opt(S, kappa, alpha = 0.05, cv_tbl = NULL)
 \arguments{
 \item{S}{Square root of the signal-to-noise ratio
 \eqn{\sqrt{\mu_{2}}/\sigma}{sqrt(mu_2)/sigma}, where
-\eqn{\sqrt{\mu_{2}}}{mu_2} is the variance of \eqn{\theta}{theta}}
+\eqn{\sqrt{\mu_{2}}}{mu_2} is the variance of
+\eqn{\theta-X'\delta}{theta-X*delta}, and \eqn{\sigma^2}{sigma^2} is the
+variance of the preliminary estimator.}
 
-\item{kappa}{Kurtosis of \eqn{\theta}{theta}}
+\item{kappa}{Kurtosis of \eqn{\theta-X'\delta}{theta-X*delta}.}
 
-\item{alpha}{determines CI level}
+\item{alpha}{Determines confidence level, \eqn{1-\alpha}{1-alpha}.}
 
-\item{cv_tbl}{Optionally, supply a data frame of critical values. (TODO)}
+\item{cv_tbl}{Optionally, supply a data frame of critical values.
+\code{cva(B, kappa, alpha)}, for different values of \code{B}, such as a
+subset of the data frame \code{\link{cva_tbl}}, that matches the supplied
+values of \code{alpha} and \code{kappa}. The data frame needs to contain
+two variables, \code{B}, corresponding to the value of average squared
+normalized bias, and \code{cv}, with the corresponding value of
+\code{cva(B, kappa, alpha)}. If non \code{NULL}, for the purposes of
+optimizing the shrinkage factor, compute the critical value \code{cva} by
+interpolating between the critical values in this data frame, instead of
+computing them from scratch. This can speed up the calculations.}
 }
 \value{
-(TODO)
+Returns a list with 3 components:
+\describe{
+
+\item{\code{w}}{Optimal shrinkage factor \eqn{w_{opt}}{w_opt}}
+
+\item{\code{length}}{Normalized half-length of the corresponding confidence
+interval, so that the interval obtains by taking the estimator based on
+shrinkage given by \code{w}, and adding and subtracting \code{length} times
+the standard error \eqn{\sigma}{sigma} of the preliminary estimator.}
+
+\item{\code{B}}{Square root of the normalized bias,
+\eqn{(1/w-1)S}{(1/w-1)*S}}}
 }
 \description{
 Compute linear shrinkage factor \eqn{w_{opt}}{w_opt} to minimize the length
 of the resulting Empirical Bayes confidence interval (EBCI).
 }
 \examples{
+w_opt(1, 3)
+## Use precomputed critical value table
 w_opt(1, 3, cv_tbl=cva_tbl[cva_tbl$kappa==3 & cva_tbl$alpha==0.05, ])
 }

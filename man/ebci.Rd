@@ -2,7 +2,7 @@
 % Please edit documentation in R/eb.R
 \name{ebci}
 \alias{ebci}
-\title{EBCIs in applications}
+\title{Compute empirical Bayes confidence intervals by shrinking toward regression}
 \usage{
 ebci(
   formula,
@@ -16,26 +16,93 @@ ebci(
 )
 }
 \arguments{
-\item{formula}{TODO}
+\item{formula}{object of class \code{"formula"} (or one that can be coerced
+to that class) of the form \code{Y ~ predictors}, where \code{Y} is a
+preliminary unbiased estimator, and \code{predictors} are predictors
+\eqn{X} that guide the direction of shrinkage. For shrinking toward the
+grand mean, use \code{Y ~ 1}, and for shrinking toward \code{0} use
+\code{Y ~ 0}}
 
-\item{data}{TODO}
+\item{data}{optional data frame, list or environment (or object coercible by
+\code{as.data.frame} to a data frame) containing the preliminary
+estimator \code{Y} and the predictors. If not found in \code{data}, these
+variables are taken from \code{environment(formula)}, typically the
+environment from which the function is called.}
 
-\item{se}{TODO}
+\item{se}{Standard errors \eqn{\sigma}{sigma} associated with the preliminary
+estimates \code{Y}}
 
-\item{weights}{TODO}
+\item{weights}{An optional vector of weights to be used in the fitting
+process in computing \eqn{\delta}{delta}, \eqn{\mu_2}{mu_2} and
+\eqn{\kappa}{kappa}. Should be \code{NULL} or a numeric vector.}
 
-\item{alpha}{TODO}
+\item{alpha}{Determines confidence level, \eqn{1-\alpha}{1-alpha}.}
 
-\item{kappa}{Use pre-specified value for kurtosis (such as Inf). If NULL,
-then compute it}
+\item{kappa}{If non-\code{NULL}, use pre-specified value for the kurtosis
+\eqn{\kappa}{kappe} of \eqn{\theta-X'\delta}{theta-X*delta} (such as
+\code{Inf}), instead of computing it.}
 
-\item{tstat}{TODO}
+\item{tstat}{If \code{TRUE}, shrink the t-statistics \code{Y/se} rather than
+the preliminary estimates \code{Y}.}
 
-\item{cores}{TODO}
+\item{cores}{Number of cores to use. By default, the computation of the
+length-optimal shrinkage factors \code{\link{w_opt}} is parallelized to
+speed up the calculations.}
 }
 \value{
-TODO
+Returns a list with the following components: \describe{
+
+\item{\code{sqrt_mu2}}{Square root of the estimated second moment of
+\eqn{\theta-X'\delta}{theta-X*delta}, \eqn{\sqrt{\mu_2}}{mu_2^(1/2)}}
+
+\item{\code{kappa}}{Estimated kurtosis \eqn{\kappa}{kappa} of
+\eqn{\theta-X'\delta}{theta-X*delta}}
+
+\item{\code{delta}}{Estimated regression coefficients \eqn{\delta}{delta}}
+
+\item{\code{df}}{Data frame with components described below.}
+}
+
+\code{df} has the following components:
+
+\describe{
+
+\item{\code{w_eb}}{EB shrinkage factors,
+\eqn{\mu_{2}/(\mu_{2}+\sigma^2_i)}{mu_2/(mu_2+sigma^2_i)}}
+
+\item{\code{w_opt}}{Optimal shrinkage factors \code{\link{w_opt}}}
+
+\item{\code{ncov_pa}}{Maximal non-coverage of parametric EBCIs}
+
+\item{\code{len_eb}}{Half-length of EBCIs based on EB shrinkage, so that the
+intervals take the form
+\code{cbind(th_eb-len_eb, th_eb+len_eb)}}
+
+\item{\code{len_op}}{Half-length of EBCIs based on length-optimal shrinkage, so
+that the intervals take the form \code{cbind(th_op-len_op, th_op+len_op)}}
+
+\item{\code{len_pa}}{Half-length of parametric EBCIs, which take the form
+\code{cbind(th_eb-len_pa, th_eb+len_a)}}
+
+\item{\code{len_us}}{Half-length of unshrunk CIs that take the form
+\code{cbind(th_us-len_us, th_us+len_us)}}
+
+\item{\code{th_us}}{Unshrunk estimate \eqn{Y}}
+
+\item{\code{th_eb}}{EB estimate.}
+
+\item{\code{th_eb}}{Estimate based on length-optimal shrinkage.}
+
+\item{\code{se}}{Standard error \eqn{\sigma}{sigma}, as supplied by the
+argument \code{se}.}
+}
 }
 \description{
-EBCIs in applications
+Computes empirical Bayes estimators based on shrinking towards a regression,
+and associated robust empirical Bayes confidence intervals (EBCIs), as well
+as length-optimal robust EBCIs.
+}
+\examples{
+ebci(theta25 ~ stayer25, cz, se25, pop/pop, tstat=TRUE)
+ebci(theta25 ~ 0, cz, se25, pop/pop, tstat=TRUE)
 }

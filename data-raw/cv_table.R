@@ -7,7 +7,7 @@ store_cva <- function(B, kappa, alpha, check=TRUE) {
 }
 
 Bs <-  seq(0, 5, by=0.001)
-## Takes TODO hrs on X1 Carbon
+## Takes 4 hrs on X1 Carbon
 kappa <- c(1:10, Inf)
 ## Takes 2 hrs on X1 Carbon
 ## kappa <- c(1:4, Inf)

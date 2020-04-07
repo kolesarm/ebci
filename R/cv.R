@@ -196,24 +196,29 @@ CVb <- function(B, alpha=0.05) {
 #'
 #' Computes the critical value \eqn{cva_{\alpha}(m_{2}, \kappa)}{cva_alpha(m_2,
 #' kappa)} from Armstrong, Kolesár, and Plagborg-Møller (2020).
-#' @param B Bound on the square root of the average squared standardized bias,
+#' @param B Bound on the square root of the average squared normalized bias,
 #'     \eqn{\sqrt{m_{2}}}{sqrt(m_2)}
-#' @param kappa Bound on the kurtosis of the bias, \eqn{\kappa}{kappa}
-#' @param alpha Determines CI level, \eqn{1-\alpha}{1-alpha}.
-#' @param check If \code{TRUE}, verify accuracy of the solution by solving a
-#'     finite-grid approximation (by discretizing the support of the bias) to
-#'     the primal linear programing problem, and checking that it agrees with
-#'     the dual solution.
+#' @param kappa Bound on the kurtosis of the normalized bias,
+#'     \eqn{\kappa}{kappa}
+#' @param alpha Determines confidence level, \eqn{1-\alpha}{1-alpha}.
+#' @param check If \code{TRUE}, verify accuracy of the solution by checking that
+#'     the implied least favorable distribution satisfies the \code{B} and
+#'     \code{kappa} constraints and yields the same non-coverage rate. If this
+#'     fails (perhaps due to numerical accuracy issues), solve a finite-grid
+#'     approximation (by discretizing the support of the bias) to the primal
+#'     linear programing problem, and check that it agrees with the dual
+#'     solution.
 #' @return Returns a list with 4 components: \describe{
 #'
-#' \item{cv}{Critical value for constructing two-sided confidence intervals.}
+#' \item{\code{cv}}{Critical value for constructing two-sided confidence
+#' intervals.}
 #'
-#' \item{size}{\code{alpha}}
+#' \item{\code{size}}{The argument \code{alpha}.}
 #'
-#' \item{x}{Support points for the least favorable distribution for the squared
-#' standardized bias, \eqn{b^2}.}
+#' \item{\code{x}}{Support points for the least favorable distribution for the
+#' squared normalized bias, \eqn{b^2}.}
 #'
-#' \item{p}{Probabilities associated with the support points.}
+#' \item{\code{p}}{Probabilities associated with the support points.}
 #'
 #' }
 #' @examples

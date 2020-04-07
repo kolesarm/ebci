@@ -4,12 +4,36 @@
 #' of the resulting Empirical Bayes confidence interval (EBCI).
 #' @param S Square root of the signal-to-noise ratio
 #'     \eqn{\sqrt{\mu_{2}}/\sigma}{sqrt(mu_2)/sigma}, where
-#'     \eqn{\sqrt{\mu_{2}}}{mu_2} is the variance of \eqn{\theta}{theta}
-#' @param kappa Kurtosis of \eqn{\theta}{theta}
-#' @param alpha determines CI level
-#' @param cv_tbl Optionally, supply a data frame of critical values. (TODO)
-#' @return (TODO)
+#'     \eqn{\sqrt{\mu_{2}}}{mu_2} is the variance of
+#'     \eqn{\theta-X'\delta}{theta-X*delta}, and \eqn{\sigma^2}{sigma^2} is the
+#'     variance of the preliminary estimator.
+#' @param kappa Kurtosis of \eqn{\theta-X'\delta}{theta-X*delta}.
+#' @param alpha Determines confidence level, \eqn{1-\alpha}{1-alpha}.
+#' @param cv_tbl Optionally, supply a data frame of critical values.
+#'     \code{cva(B, kappa, alpha)}, for different values of \code{B}, such as a
+#'     subset of the data frame \code{\link{cva_tbl}}, that matches the supplied
+#'     values of \code{alpha} and \code{kappa}. The data frame needs to contain
+#'     two variables, \code{B}, corresponding to the value of average squared
+#'     normalized bias, and \code{cv}, with the corresponding value of
+#'     \code{cva(B, kappa, alpha)}. If non \code{NULL}, for the purposes of
+#'     optimizing the shrinkage factor, compute the critical value \code{cva} by
+#'     interpolating between the critical values in this data frame, instead of
+#'     computing them from scratch. This can speed up the calculations.
+#' @return Returns a list with 3 components:
+#' \describe{
+#'
+#' \item{\code{w}}{Optimal shrinkage factor \eqn{w_{opt}}{w_opt}}
+#'
+#' \item{\code{length}}{Normalized half-length of the corresponding confidence
+#' interval, so that the interval obtains by taking the estimator based on
+#' shrinkage given by \code{w}, and adding and subtracting \code{length} times
+#' the standard error \eqn{\sigma}{sigma} of the preliminary estimator.}
+#'
+#' \item{\code{B}}{Square root of the normalized bias,
+#' \eqn{(1/w-1)S}{(1/w-1)*S}}}
 #' @examples
+#' w_opt(1, 3)
+#' ## Use precomputed critical value table
 #' w_opt(1, 3, cv_tbl=cva_tbl[cva_tbl$kappa==3 & cva_tbl$alpha==0.05, ])
 #' @export
 w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
@@ -42,10 +66,28 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
 
 #' Empirical Bayes estimator and confidence intervals
 #'
-#' Compute linear shrinkage factor \eqn{w_{eb}}{w_eb} and normalize length of of
-#' the associated robust Empirical Bayes confidence interval (EBCI).
+#' Compute empirical Bayes shrinkage factor \eqn{w_{eb}}{w_eb} and the
+#' normalized half-length of of the associated robust Empirical Bayes confidence
+#' interval (EBCI).
 #' @inheritParams w_opt
-#' @return (TODO)
+#' @return Returns a list with 3 components:
+#' \describe{
+#'
+#' \item{\code{w}}{Empirical Bayes shrinkage factor \eqn{w_{eb}}{w_eb}}
+#'
+#' \item{\code{length}}{Normalized half-length of the corresponding confidence
+#' interval, so that the interval obtains by taking the estimator based on
+#' shrinkage given by \code{w}, and adding and subtracting \code{length} times
+#' the standard error \eqn{\sigma}{sigma} of the preliminary estimator.}
+#'
+#' \item{\code{B}}{Square root of the normalized bias, \eqn{1/S}.}
+#'
+#' }
+#' @examples
+#' w_opt(1, 3)
+#' ## No constraint on kurtosis yields doesn't affect shrinkage, but yields
+#' ## larger half-length
+#' w_opt(1, Inf)
 #' @export
 w_eb <- function(S, kappa=Inf, alpha=0.05) {
     w <- S^2/(1+S^2)
@@ -62,17 +104,85 @@ weighted.var <- function(y, w, na.rm=FALSE) {
     length(y)/(length(y)-1)*sum(w*(y-stats::weighted.mean(y, w))^2)/sum(w)
 }
 
-#' EBCIs in applications
-#' @param formula TODO
-#' @param data TODO
-#' @param se TODO
-#' @param weights TODO
-#' @param alpha TODO
-#' @param kappa Use pre-specified value for kurtosis (such as Inf). If NULL,
-#'     then compute it
-#' @param tstat TODO
-#' @param cores TODO
-#' @return TODO
+#' Compute empirical Bayes confidence intervals by shrinking toward regression
+#'
+#' Computes empirical Bayes estimators based on shrinking towards a regression,
+#' and associated robust empirical Bayes confidence intervals (EBCIs), as well
+#' as length-optimal robust EBCIs.
+#' @param formula object of class \code{"formula"} (or one that can be coerced
+#'     to that class) of the form \code{Y ~ predictors}, where \code{Y} is a
+#'     preliminary unbiased estimator, and \code{predictors} are predictors
+#'     \eqn{X} that guide the direction of shrinkage. For shrinking toward the
+#'     grand mean, use \code{Y ~ 1}, and for shrinking toward \code{0} use
+#'     \code{Y ~ 0}
+#' @param data optional data frame, list or environment (or object coercible by
+#'     \code{as.data.frame} to a data frame) containing the preliminary
+#'     estimator \code{Y} and the predictors. If not found in \code{data}, these
+#'     variables are taken from \code{environment(formula)}, typically the
+#'     environment from which the function is called.
+#' @param se Standard errors \eqn{\sigma}{sigma} associated with the preliminary
+#'     estimates \code{Y}
+#' @param weights An optional vector of weights to be used in the fitting
+#'     process in computing \eqn{\delta}{delta}, \eqn{\mu_2}{mu_2} and
+#'     \eqn{\kappa}{kappa}. Should be \code{NULL} or a numeric vector.
+#' @param alpha Determines confidence level, \eqn{1-\alpha}{1-alpha}.
+#' @param kappa If non-\code{NULL}, use pre-specified value for the kurtosis
+#'     \eqn{\kappa}{kappe} of \eqn{\theta-X'\delta}{theta-X*delta} (such as
+#'     \code{Inf}), instead of computing it.
+#' @param tstat If \code{TRUE}, shrink the t-statistics \code{Y/se} rather than
+#'     the preliminary estimates \code{Y}.
+#' @param cores Number of cores to use. By default, the computation of the
+#'     length-optimal shrinkage factors \code{\link{w_opt}} is parallelized to
+#'     speed up the calculations.
+#' @return Returns a list with the following components: \describe{
+#'
+#' \item{\code{sqrt_mu2}}{Square root of the estimated second moment of
+#' \eqn{\theta-X'\delta}{theta-X*delta}, \eqn{\sqrt{\mu_2}}{mu_2^(1/2)}}
+#'
+#' \item{\code{kappa}}{Estimated kurtosis \eqn{\kappa}{kappa} of
+#' \eqn{\theta-X'\delta}{theta-X*delta}}
+#'
+#' \item{\code{delta}}{Estimated regression coefficients \eqn{\delta}{delta}}
+#'
+#' \item{\code{df}}{Data frame with components described below.}
+#' }
+#'
+#' \code{df} has the following components:
+#'
+#' \describe{
+#'
+#' \item{\code{w_eb}}{EB shrinkage factors,
+#'    \eqn{\mu_{2}/(\mu_{2}+\sigma^2_i)}{mu_2/(mu_2+sigma^2_i)}}
+#'
+#' \item{\code{w_opt}}{Optimal shrinkage factors \code{\link{w_opt}}}
+#'
+#' \item{\code{ncov_pa}}{Maximal non-coverage of parametric EBCIs}
+#'
+#' \item{\code{len_eb}}{Half-length of EBCIs based on EB shrinkage, so that the
+#' intervals take the form
+#' \code{cbind(th_eb-len_eb, th_eb+len_eb)}}
+#'
+#' \item{\code{len_op}}{Half-length of EBCIs based on length-optimal shrinkage,
+#' so that the intervals take the form \code{cbind(th_op-len_op, th_op+len_op)}}
+#'
+#' \item{\code{len_pa}}{Half-length of parametric EBCIs, which take the form
+#' \code{cbind(th_eb-len_pa, th_eb+len_a)}}
+#'
+#' \item{\code{len_us}}{Half-length of unshrunk CIs that take the form
+#' \code{cbind(th_us-len_us, th_us+len_us)}}
+#'
+#' \item{\code{th_us}}{Unshrunk estimate \eqn{Y}}
+#'
+#' \item{\code{th_eb}}{EB estimate.}
+#'
+#' \item{\code{th_eb}}{Estimate based on length-optimal shrinkage.}
+#'
+#' \item{\code{se}}{Standard error \eqn{\sigma}{sigma}, as supplied by the
+#' argument \code{se}.}
+#' }
+#' @examples
+#' ebci(theta25 ~ stayer25, cz, se25, pop/pop, tstat=TRUE)
+#' ebci(theta25 ~ 0, cz, se25, pop/pop, tstat=TRUE)
 #' @export
 ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
                      tstat=FALSE, cores=max(parallel::detectCores()-1L, 1L)) {
@@ -86,6 +196,9 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
     mf <- eval(mf, parent.frame())
     Y <- stats::model.response(mf, "numeric")
     wgt <- as.vector(stats::model.weights(mf))
+    ## Do not weight
+    if (is.null(wgt))
+        wgt <- rep(1L, length(Y))
     se <- mf$"(se)"
     X <- stats::model.matrix(stats::terms(formula, data = data), mf)
 
@@ -156,6 +269,5 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
                      th_eb=th_eb,
                      th_op=th_op,
                      se=se)
-
     list(sqrt_mu2=sqrt(mu2), kappa=kappa, delta=delta, df=df)
 }
