@@ -4,11 +4,37 @@
 \alias{ebci}
 \title{EBCIs in applications}
 \usage{
-ebci(formula, data, se, weights, alpha = 0.1, kappa = NULL, tstat = FALSE)
+ebci(
+  formula,
+  data,
+  se,
+  weights,
+  alpha = 0.1,
+  kappa = NULL,
+  tstat = FALSE,
+  cores = max(parallel::detectCores() - 1L, 1L)
+)
 }
 \arguments{
+\item{formula}{TODO}
+
+\item{data}{TODO}
+
+\item{se}{TODO}
+
+\item{weights}{TODO}
+
+\item{alpha}{TODO}
+
 \item{kappa}{Use pre-specified value for kurtosis (such as Inf). If NULL,
 then compute it}
+
+\item{tstat}{TODO}
+
+\item{cores}{TODO}
+}
+\value{
+TODO
 }
 \description{
 EBCIs in applications

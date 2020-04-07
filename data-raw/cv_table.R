@@ -7,23 +7,13 @@ store_cva <- function(B, kappa, alpha, check=TRUE) {
 }
 
 Bs <-  seq(0, 5, by=0.001)
-## Takes 3.5hrs on X1 Carbon
+## Takes TODO hrs on X1 Carbon
 kappa <- c(1:10, Inf)
+## Takes 2 hrs on X1 Carbon
+## kappa <- c(1:4, Inf)
 
 cv_tbl5 <- data.frame(store_cva(Bs, kappa, alpha=0.05))
 cv_tbl1 <- data.frame(store_cva(Bs, kappa, alpha=0.1))
 cva_tbl <- rbind(cv_tbl5, cv_tbl1)
 
 usethis::use_data(cva_tbl, overwrite=TRUE, internal=FALSE)
-
-
-## B=2.8, alpha=0.1, kappa=8
-## cva(B=2.8, alpha=0.1, kappa=8)
-## workds for kappa=7 or 9
-## rho2(2.8^2, 8, 7.1324290147839279896)
-
-if (FALSE) {
-    r1 <- rho2(m2, kappa=10, chi, check=FALSE)
-    ## This should give the same rejection rate
-    sum(r(r1$x, chi)*r1$p)
-}

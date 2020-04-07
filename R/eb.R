@@ -59,60 +59,73 @@ weighted.var <- function(y, w, na.rm=FALSE) {
         y <- y[idx]
         w <- w[idx]
     }
-    length(y)/(length(y)-1)*sum(w*(y-weighted.mean(y, w))^2)/sum(w)
+    length(y)/(length(y)-1)*sum(w*(y-stats::weighted.mean(y, w))^2)/sum(w)
 }
 
 #' EBCIs in applications
+#' @param formula TODO
+#' @param data TODO
+#' @param se TODO
+#' @param weights TODO
+#' @param alpha TODO
 #' @param kappa Use pre-specified value for kurtosis (such as Inf). If NULL,
 #'     then compute it
+#' @param tstat TODO
+#' @param cores TODO
+#' @return TODO
+#' @export
 ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
-                     tstat=FALSE) {
+                     tstat=FALSE, cores=max(parallel::detectCores()-1L, 1L)) {
     ## Construct model frame
     mf <- match.call(expand.dots = FALSE)
     m <- match(c("formula", "data", "se", "weights"), names(mf), 0L)
     mf <- mf[c(1L, m)]
-    formula <- as.formula(formula)
+    formula <- stats::as.formula(formula)
     mf$formula <- formula
     mf[[1L]] <- quote(stats::model.frame)
     mf <- eval(mf, parent.frame())
     Y <- stats::model.response(mf, "numeric")
     wgt <- as.vector(stats::model.weights(mf))
     se <- mf$"(se)"
-    X <- model.matrix(stats::terms(formula, data = data), mf)
+    X <- stats::model.matrix(stats::terms(formula, data = data), mf)
 
     ## Compute delta, and moments
     Yt <- if(tstat) Y/se else Y
     set <- if (tstat) 1L else se
-    r1 <- lm.wfit(X, Yt, wgt)
+    r1 <- stats::lm.wfit(X, Yt, wgt)
     mu1 <- unname(r1$fitted.values)
     ## delta <- r1$coefficients[!is.na(r1$coefficients)]
     delta <- r1$coefficients
-    mu2 <- weighted.mean((Yt-mu1)^2-set^2, wgt)
+    mu2 <- stats::weighted.mean((Yt-mu1)^2-set^2, wgt)
     if (is.null(kappa)) {
         ## Formula without assuming epsilon_i and sigma_i are uncorrelated,
         ## alternative is weighted.mean((Yt-mu1)^4 - 6*set^2*mu2 - 3*set^4, wgt)
-        kappa <- weighted.mean((Yt-mu1)^4 - 6*set^2*(Yt-mu1)^2 +
-                               3*set^4, wgt) / mu2^2
+        kappa <- stats::weighted.mean((Yt-mu1)^4 - 6*set^2*(Yt-mu1)^2 +
+                                      3*set^4, wgt) / mu2^2
         if (kappa < 1) {
             message("Kurtosis estimate is smaller than 1, setting it to Inf")
             kappa <- Inf
         }
     }
+    za <- stats::qnorm(1-alpha/2)
     if (tstat) {
         op <- w_opt(sqrt(mu2), kappa, alpha)
         eb <- w_eb(sqrt(mu2), kappa, alpha)
 
         th_eb <- se*(mu1+eb$w*(Yt-mu1))
         th_op <- se*(mu1+op$w*(Yt-mu1))
-        ncov_pa <- rho2(1/eb$w-1, kappa, qnorm(1-alpha/2)/sqrt(eb$w),
+        ncov_pa <- rho(1/eb$w-1, kappa, za/sqrt(eb$w),
                        check=TRUE)$size
     } else {
         ## Pre-compute cva for this kurtosis
         df <- data.frame(B=seq(0, 20, length.out=2001), kappa=kappa)
         cvj <- function(j)
             ebci::cva(df$B[j], kappa=kappa, alpha, check=TRUE)$cv
-        cores <- max(parallel::detectCores()-1L, 1L)
-        df$cv <- unlist(parallel::mclapply(seq_len(nrow(df)), cvj, mc.cores=cores))
+        df$cv <- if (cores>1)
+                     unlist(parallel::mclapply(seq_len(nrow(df)), cvj,
+                                               mc.cores=cores))
+                 else
+                     vapply(seq_len(nrow(df)), cvj, numeric(1))
         df$alpha <- alpha
 
         ## Optimal shrinkage for each individual
@@ -128,8 +141,8 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
         th_eb <- mu1+eb$w*(Yt-mu1)
         th_op <- mu1+op$w*(Yt-mu1)
         par_cov <- function(se)
-            rho2(se^2/mu2, kappa,
-                 qnorm(1-alpha/2)*sqrt(1+se^2/mu2), check=TRUE)$size
+            rho(se^2/mu2, kappa,
+                 za*sqrt(1+se^2/mu2), check=TRUE)$size
         ncov_pa <- vapply(se, par_cov, numeric(1))
     }
     df <- data.frame(w_eb=eb$w,
@@ -137,8 +150,8 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
                      ncov_pa=ncov_pa,
                      len_eb=eb$length*se,
                      len_op=op$length*se,
-                     len_pa=sqrt(eb$w)*qnorm(1-alpha/2)*se,
-                     len_us=qnorm(1-alpha/2)*se,
+                     len_pa=sqrt(eb$w)*za*se,
+                     len_us=za*se,
                      th_us=Y,
                      th_eb=th_eb,
                      th_op=th_op,

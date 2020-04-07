@@ -17,7 +17,8 @@ RoxygenNote: 7.1.0
 Suggests:
     spelling,
     testthat (>= 2.1.0),
-    lpSolve
+    lpSolve,
+    parallel
 Language: en-US
 URL: https://github.com/kolesarm/ebci
 BugReports: https://github.com/kolesarm/ebci/issues
