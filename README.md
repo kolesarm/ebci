@@ -1,24 +1,26 @@
+[![Travis build status](https://travis-ci.org/kolesarm/ebci.svg?branch=master)](https://travis-ci.org/kolesarm/ebci) [![Coverage status](https://codecov.io/gh/kolesarm/ebci/branch/master/graph/badge.svg)](https://codecov.io/github/kolesarm/ebci?branch=master)
+
 # ebci
 
-<!-- badges: start -->
-<!-- badges: end -->
-
-The goal of ebci is to ...
+This R package implements robust empirical Bayes confidence intervals from
+Armstrong, Kolesár, and Plagborg-Møller (2020). See the package
+[manual](doc/manual.pdf) for documentation of the package functions.
 
 ## Installation
 
-You can install the released version of ebci from [CRAN](https://CRAN.R-project.org) with:
+You can get the current development version from GitHub:
 
 ``` r
-install.packages("ebci")
+install.packages("remotes") # if not installed
+remotes::install_github("kolesarm/ebci")
 ```
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
-
 ``` r
 library("ebci")
-## basic example code
+## Only second moment constraints, B=sqrt(m_2)=2
+cva(B=2, kappa=Inf, alpha=0.05)
+## Add a constraint that kurtosis equals 3
+cva(B=2, kappa=3, alpha=0.05)
 ```
-
