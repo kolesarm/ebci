@@ -28,9 +28,12 @@ Suggests:
     spelling,
     testthat (>= 2.1.0),
     lpSolve,
-    parallel
+    parallel,
+    knitr,
+    rmarkdown
 Language: en-US
 URL: https://github.com/kolesarm/ebci
 BugReports: https://github.com/kolesarm/ebci/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
+VignetteBuilder: knitr
