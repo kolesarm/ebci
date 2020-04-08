@@ -122,7 +122,7 @@ lam <- function(x0, chi) {
 rho <- function(m2, kappa, chi, check=TRUE, len=5000) {
     r0 <- rho0(m2, chi)
     t0 <- rt0(chi)$t0
-    ip <- rt0(chi)$ip
+
     if (kappa == 1) {
         list(size=r(m2, chi), x=c(0, m2), p=c(0, 1))
     } else if (m2 >= t0) {
@@ -219,6 +219,13 @@ CVb <- function(B, alpha=0.05) {
 #' squared normalized bias, \eqn{b^2}.}
 #'
 #' \item{\code{p}}{Probabilities associated with the support points.}
+#'
+#' }
+#' @references{
+#'
+#' \cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
+#' (2020): Robust Empirical Bayes Confidence Intervals,
+#' \url{https://arxiv.org/abs/2004.03448}}
 #'
 #' }
 #' @examples

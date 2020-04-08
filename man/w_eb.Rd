@@ -39,6 +39,16 @@ interval (EBCI).
 }
 \examples{
 w_opt(1, 3)
-## No constraint on kurtosis yields the same shrinkage, but larger half-length
+## No constraint on kurtosis yields doesn't affect shrinkage, but yields
+## larger half-length
 w_opt(1, Inf)
+}
+\references{
+{
+
+\cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
+(2020): Robust Empirical Bayes Confidence Intervals,
+\url{https://arxiv.org/abs/2004.03448}}
+
+}
 }

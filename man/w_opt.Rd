@@ -51,3 +51,12 @@ w_opt(1, 3)
 ## Use precomputed critical value table
 w_opt(1, 3, cv_tbl=cva_tbl[cva_tbl$kappa==3 & cva_tbl$alpha==0.05, ])
 }
+\references{
+{
+
+\cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
+(2020): Robust Empirical Bayes Confidence Intervals,
+\url{https://arxiv.org/abs/2004.03448}}
+
+}
+}

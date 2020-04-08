@@ -62,7 +62,7 @@ effects at the commuting zone level
 
 \cite{Chetty, R., & Hendren, N. (2018). The Impacts of Neighborhoods on
 Intergenerational Mobility II: County-Level Estimates. The Quarterly Journal
-of Economics, 133(3), 1163–1228. doi:10.1093/qje/qjy006}
+of Economics, 133(3), 1163–1228. \url{https://doi.org/10.1093/qje/qjy006}}
 
 }
 }

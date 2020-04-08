@@ -31,6 +31,13 @@
 #'
 #' \item{\code{B}}{Square root of the normalized bias,
 #' \eqn{(1/w-1)S}{(1/w-1)*S}}}
+#' @references{
+#'
+#' \cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
+#' (2020): Robust Empirical Bayes Confidence Intervals,
+#' \url{https://arxiv.org/abs/2004.03448}}
+#'
+#' }
 #' @examples
 #' w_opt(1, 3)
 #' ## Use precomputed critical value table
@@ -83,6 +90,13 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
 #' \item{\code{B}}{Square root of the normalized bias, \eqn{1/S}.}
 #'
 #' }
+#' @references{
+#'
+#' \cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
+#' (2020): Robust Empirical Bayes Confidence Intervals,
+#' \url{https://arxiv.org/abs/2004.03448}}
+#'
+#' }
 #' @examples
 #' w_opt(1, 3)
 #' ## No constraint on kurtosis yields doesn't affect shrinkage, but yields
@@ -94,15 +108,6 @@ w_eb <- function(S, kappa=Inf, alpha=0.05) {
     list(w=w, length=cva(1/S, kappa=kappa, alpha=alpha, check=TRUE)$cv*w, B=1/S)
 }
 
-
-weighted.var <- function(y, w, na.rm=FALSE) {
-    if (na.rm) {
-        idx <- !is.na(y) & !is.na(w)
-        y <- y[idx]
-        w <- w[idx]
-    }
-    length(y)/(length(y)-1)*sum(w*(y-stats::weighted.mean(y, w))^2)/sum(w)
-}
 
 #' Compute empirical Bayes confidence intervals by shrinking toward regression
 #'
@@ -179,6 +184,13 @@ weighted.var <- function(y, w, na.rm=FALSE) {
 #'
 #' \item{\code{se}}{Standard error \eqn{\sigma}{sigma}, as supplied by the
 #' argument \code{se}.}
+#' }
+#' @references{
+#'
+#' \cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
+#' (2020): Robust Empirical Bayes Confidence Intervals,
+#' \url{https://arxiv.org/abs/2004.03448}}
+#'
 #' }
 #' @examples
 #' ebci(theta25 ~ stayer25, cz, se25, pop/pop, tstat=TRUE)

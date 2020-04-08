@@ -10,7 +10,8 @@ cva(B, kappa = Inf, alpha = 0.05, check = TRUE)
 \item{B}{Bound on the square root of the average squared normalized bias,
 \eqn{\sqrt{m_{2}}}{sqrt(m_2)}}
 
-\item{kappa}{Bound on the kurtosis of the normalized bias, \eqn{\kappa}{kappa}}
+\item{kappa}{Bound on the kurtosis of the normalized bias,
+\eqn{\kappa}{kappa}}
 
 \item{alpha}{Determines confidence level, \eqn{1-\alpha}{1-alpha}.}
 
@@ -25,12 +26,13 @@ solution.}
 \value{
 Returns a list with 4 components: \describe{
 
-\item{\code{cv}}{Critical value for constructing two-sided confidence intervals.}
+\item{\code{cv}}{Critical value for constructing two-sided confidence
+intervals.}
 
 \item{\code{size}}{The argument \code{alpha}.}
 
-\item{\code{x}}{Support points for the least favorable distribution for the squared
-normalized bias, \eqn{b^2}.}
+\item{\code{x}}{Support points for the least favorable distribution for the
+squared normalized bias, \eqn{b^2}.}
 
 \item{\code{p}}{Probabilities associated with the support points.}
 
@@ -45,4 +47,13 @@ kappa)} from Armstrong, Kolesár, and Plagborg-Møller (2020).
 cva(1, kappa=Inf)
 ## With a constraint
 cva(1, kappa=3)
+}
+\references{
+{
+
+\cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
+(2020): Robust Empirical Bayes Confidence Intervals,
+\url{https://arxiv.org/abs/2004.03448}}
+
+}
 }

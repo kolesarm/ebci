@@ -3,7 +3,8 @@
 # ebci
 
 This R package implements robust empirical Bayes confidence intervals from
-Armstrong, Kolesár, and Plagborg-Møller (2020). See the package
+[Armstrong, Kolesár, and Plagborg-Møller
+(2020)](https://arxiv.org/abs/2004.03448). See the package
 [manual](doc/manual.pdf) for documentation of the package functions.
 
 ## Installation

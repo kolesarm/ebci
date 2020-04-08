@@ -78,8 +78,8 @@ Returns a list with the following components: \describe{
 intervals take the form
 \code{cbind(th_eb-len_eb, th_eb+len_eb)}}
 
-\item{\code{len_op}}{Half-length of EBCIs based on length-optimal shrinkage, so
-that the intervals take the form \code{cbind(th_op-len_op, th_op+len_op)}}
+\item{\code{len_op}}{Half-length of EBCIs based on length-optimal shrinkage,
+so that the intervals take the form \code{cbind(th_op-len_op, th_op+len_op)}}
 
 \item{\code{len_pa}}{Half-length of parametric EBCIs, which take the form
 \code{cbind(th_eb-len_pa, th_eb+len_a)}}
@@ -105,4 +105,13 @@ as length-optimal robust EBCIs.
 \examples{
 ebci(theta25 ~ stayer25, cz, se25, pop/pop, tstat=TRUE)
 ebci(theta25 ~ 0, cz, se25, pop/pop, tstat=TRUE)
+}
+\references{
+{
+
+\cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
+(2020): Robust Empirical Bayes Confidence Intervals,
+\url{https://arxiv.org/abs/2004.03448}}
+
+}
 }
