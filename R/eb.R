@@ -47,18 +47,22 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
         ## Linearly interpolate
         cv <- function(m2) {
             idx <- which.max(cv_tbl$m2>m2)
-            cv_tbl$cv[idx-1]+(m2-cv_tbl$m2[idx-1])/
-                (cv_tbl$m2[idx]-cv_tbl$m2[idx-1]) *
-                (cv_tbl$cv[idx]-cv_tbl$cv[idx-1])
+            idx0 <- max(idx-1, 1)
+            cv_tbl$cv[idx0]+(m2-cv_tbl$m2[idx0])/
+                (cv_tbl$m2[idx]-cv_tbl$m2[idx0]) *
+                (cv_tbl$cv[idx]-cv_tbl$cv[idx0])
         }
         maxbias <- max(cv_tbl$m2)
+        minbias <- min(cv_tbl$m2)
     } else {
         cv <- function(m2) cva(m2, kappa=kappa, alpha=alpha, check=FALSE)$cv
         ## Maxium bias (i.e m2) is 100^2 to prevent numerical issues
         maxbias <- 100^2
+        minbias <- 0
     }
     ci_length <- function(w) cv((1/w-1)^2*S)*w
-    r <- stats::optimize(ci_length, c(1/(sqrt(maxbias/S)+1), 1), tol=tol)
+    r <- stats::optimize(ci_length, c(1/(sqrt(maxbias/S)+1),
+                                      1/(sqrt(minbias/S)+1)), tol=tol)
     m2 <- (1/r$minimum-1)^2*S
     ## Recompute critical value, checking solution accuracy. If we're using
     ## cv_tbl, then optimum will be at one of the values of m2 in the table, so
@@ -136,8 +140,8 @@ w_eb <- function(S, kappa=Inf, alpha=0.05) {
 #' @param tstat If \code{TRUE}, shrink the t-statistics \code{Y/se} rather than
 #'     the preliminary estimates \code{Y}.
 #' @param cores Number of cores to use. By default, the computation of the
-#'     length-optimal shrinkage factors \code{\link{w_opt}} is parallelized to
-#'     speed up the calculations.
+#'     length-optimal shrinkage factors \code{\link{w_opt}} is parallelized if
+#'     there are more than 30 observations to speed up the calculations.
 #' @return Returns a list with the following components: \describe{
 #'
 #' \item{\code{sqrt_mu2}}{Square root of the estimated second moment of
@@ -162,17 +166,17 @@ w_eb <- function(S, kappa=Inf, alpha=0.05) {
 #'
 #' \item{\code{ncov_pa}}{Maximal non-coverage of parametric EBCIs}
 #'
-#' \item{\code{len_eb}}{Half-length of EBCIs based on EB shrinkage, so that the
-#' intervals take the form
-#' \code{cbind(th_eb-len_eb, th_eb+len_eb)}}
+#' \item{\code{len_eb}}{Half-length of robust EBCIs based on EB shrinkage, so
+#' that the intervals take the form \code{cbind(th_eb-len_eb, th_eb+len_eb)}}
 #'
-#' \item{\code{len_op}}{Half-length of EBCIs based on length-optimal shrinkage,
-#' so that the intervals take the form \code{cbind(th_op-len_op, th_op+len_op)}}
+#' \item{\code{len_op}}{Half-length of robust EBCIs based on length-optimal
+#' shrinkage, so that the intervals take the form \code{cbind(th_op-len_op,
+#' th_op+len_op)}}
 #'
 #' \item{\code{len_pa}}{Half-length of parametric EBCIs, which take the form
 #' \code{cbind(th_eb-len_pa, th_eb+len_a)}}
 #'
-#' \item{\code{len_us}}{Half-length of unshrunk CIs that take the form
+#' \item{\code{len_us}}{Half-length of unshrunk CIs, which take the form
 #' \code{cbind(th_us-len_us, th_us+len_us)}}
 #'
 #' \item{\code{th_us}}{Unshrunk estimate \eqn{Y}}
@@ -221,6 +225,11 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
     ## delta <- r1$coefficients[!is.na(r1$coefficients)]
     delta <- r1$coefficients
     mu2 <- stats::weighted.mean((Yt-mu1)^2-set^2, wgt)
+    if (mu2 < 0) {
+            warning("mu2 estimate smaller than 0, setting it to 1e-4/max(se)")
+            mu2 <- 1e-4/max(se)
+    }
+
     if (is.null(kappa)) {
         ## Formula without assuming epsilon_i and sigma_i are uncorrelated,
         ## alternative is weighted.mean((Yt-mu1)^4 - 6*set^2*mu2 - 3*set^4, wgt)
@@ -241,20 +250,27 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
         ncov_pa <- rho(1/eb$w-1, kappa, za/sqrt(eb$w),
                        check=TRUE)$alpha
     } else {
-        ## Pre-compute cva for this kurtosis
-        df <- data.frame(m2=seq(0, 20, length.out=2001)^2)
-        cvj <- function(j)
-            ebci::cva(df$m2[j], kappa=kappa, alpha, check=TRUE)$cv
-        df$cv <- if (cores>1)
-                     unlist(parallel::mclapply(seq_len(nrow(df)), cvj,
-                                               mc.cores=cores))
-                 else
-                     vapply(seq_len(nrow(df)), cvj, numeric(1))
-
         ## Optimal shrinkage for each individual
+
+        ## Pre-compute cva for this kurtosis
+        if (length(se) > 30) {
+            mmin <- w_opt(mu2/min(se)^2, kappa, alpha=alpha)$m2
+            mmax <- w_opt(mu2/max(se)^2, kappa, alpha=alpha)$m2
+            df <- data.frame(m2=seq(mmin, mmax, length.out=501)^2)
+            cvj <- function(j)
+                ebci::cva(df$m2[j], kappa=kappa, alpha, check=TRUE)$cv
+            df$cv <- if (cores>1)
+                         unlist(parallel::mclapply(seq_len(nrow(df)), cvj,
+                                                   mc.cores=cores))
+                     else
+                         vapply(seq_len(nrow(df)), cvj, numeric(1))
+        } else {
+            df <- NULL
+        }
+
         op <- vapply(se, function(se)
             unlist(w_opt(mu2/se^2, kappa, cv_tbl=df,
-                              alpha=alpha)), numeric(3))
+                         alpha=alpha)), numeric(3))
         op <- as.data.frame(t(op))
         ## EB shrinkage
         eb <- vapply(se, function(se)

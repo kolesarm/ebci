@@ -36,13 +36,24 @@ test_that("Table 1 in paper", {
                              0.221920,   0.221464,   0.220051,   0.286923,
                              1.002058,   1.008492,   0.773446))
     ## Only large CZ to  make it faster
-    ## i2 <- ebci(theta25 ~ stayer25, ts[ts$pop> 300000, ],
-    ##            se25, 1/se25^2, tstat=FALSE, kappa=Inf)
-    i2 <- ebci(theta25 ~ stayer25, ts[ts$pop> 300000, ],
-               se25, 1/se25^2, tstat=FALSE, kappa=Inf, cores=1)
-    testthat::expect_equal(unname(round(eb_table(i2,
-                                                 ts$pop[ts$pop>300000]), 6)),
-                           c(0.063182, Inf,  0.641786, -1.081536,  0.023759,
-                             0.315798, 0.411483, 0.147695, 0.107307, 0.091945,
-                             0.084915, 0.194525, 1.167075, 1.263687, 0.551635))
+    df <- cz[sort(cz$pop, index.return=TRUE, decreasing=TRUE)$ix[1:10], ]
+    i2 <- ebci(formula=theta25~stayer25, data=df, se=se25, alpha=0.1)
+    i3 <- ebci(formula=theta25~0, data=df, se=se25, alpha=0.05, kappa=Inf)
+
+    testthat::expect_equal(unname(round(eb_table(i2), 6)),
+                           c(0.060852, 5.959142, 0.956639, -0.913932, 0.020049,
+                             0.456490, 0.526469, 0.115947, 0.078879, 0.075404,
+                             0.073284, 0.113034, 1.046083, 1.076356, 0.697836))
+    testthat::expect_equal(unname(round(eb_table(i3), 6)),
+                           c(0.085168, Inf, 1.873921, 0.612815, 0.695995,
+                             0.063068, 0.114249, 0.107078, 0.102651, 0.134688,
+                             1.066973, 1.112989, 0.848247))
+})
+
+
+test_that("ebci function problems", {
+    ## negative mu2 estimate
+    df <- cz[sort(cz$pop, index.return=TRUE, decreasing=TRUE)$ix[1:100], ]
+    expect_warning(r <- ebci(formula=theta25~stayer25, data=df, kappa=Inf,
+                             se=se25, alpha=0.1, cores=1))
 })

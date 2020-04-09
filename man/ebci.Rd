@@ -46,8 +46,8 @@ process in computing \eqn{\delta}{delta}, \eqn{\mu_2}{mu_2} and
 the preliminary estimates \code{Y}.}
 
 \item{cores}{Number of cores to use. By default, the computation of the
-length-optimal shrinkage factors \code{\link{w_opt}} is parallelized to
-speed up the calculations.}
+length-optimal shrinkage factors \code{\link{w_opt}} is parallelized if
+there are more than 30 observations to speed up the calculations.}
 }
 \value{
 Returns a list with the following components: \describe{
@@ -74,17 +74,17 @@ Returns a list with the following components: \describe{
 
 \item{\code{ncov_pa}}{Maximal non-coverage of parametric EBCIs}
 
-\item{\code{len_eb}}{Half-length of EBCIs based on EB shrinkage, so that the
-intervals take the form
-\code{cbind(th_eb-len_eb, th_eb+len_eb)}}
+\item{\code{len_eb}}{Half-length of robust EBCIs based on EB shrinkage, so
+that the intervals take the form \code{cbind(th_eb-len_eb, th_eb+len_eb)}}
 
-\item{\code{len_op}}{Half-length of EBCIs based on length-optimal shrinkage,
-so that the intervals take the form \code{cbind(th_op-len_op, th_op+len_op)}}
+\item{\code{len_op}}{Half-length of robust EBCIs based on length-optimal
+shrinkage, so that the intervals take the form \code{cbind(th_op-len_op,
+th_op+len_op)}}
 
 \item{\code{len_pa}}{Half-length of parametric EBCIs, which take the form
 \code{cbind(th_eb-len_pa, th_eb+len_a)}}
 
-\item{\code{len_us}}{Half-length of unshrunk CIs that take the form
+\item{\code{len_us}}{Half-length of unshrunk CIs, which take the form
 \code{cbind(th_us-len_us, th_us+len_us)}}
 
 \item{\code{th_us}}{Unshrunk estimate \eqn{Y}}
