@@ -81,17 +81,16 @@ case, the robust EBCI takes the form
 \hat{\theta}_{i} \pm cva_{\alpha}(m_2,\kappa)w_i\sigma_i,\,\, m_2=(1-1/w_i)^2\mu_2\sigma^2_i,
 \end{equation*}
 
-These critical values are implemented in the package by the `cva` function that
-takes the square root of $m_2$ as its first argument:
+These critical values are implemented in the package by the `cva` function:
 
 ```{r}
 library("ebci")
-## If B=sqrt(m_2)=0, then we get the usual critical value
-cva(B=0, kappa=Inf, alpha=0.05)$cv
-## Otherwise the critical value is larger. Suppose m_2=4, so that B=2:
-cva(B=2, kappa=Inf, alpha=0.05)$cv
+## If m_2=0, then we get the usual critical value
+cva(m2=0, kappa=Inf, alpha=0.05)$cv
+## Otherwise the critical value is larger:
+cva(m2=4, kappa=Inf, alpha=0.05)$cv
 ## Imposing a constraint on kurtosis tightens it
-cva(B=2, kappa=3, alpha=0.05)$cv
+cva(m2=4, kappa=3, alpha=0.05)$cv
 ```
 
 # Example
@@ -118,7 +117,7 @@ The return value contains:
    r$delta
    ```
 2. Estimates of $\sqrt{\mu_2}$ and $\kappa$, obtained using method of moments. We
-   set `kappa=3`, so the kurtosis value is taken to be infinity:
+   set `kappa=Inf`, so the kurtosis value is taken to be infinity:
    ```{r}
    c(r$sqrt_mu2, r$kappa)
    ```
@@ -136,11 +135,11 @@ The columns of the data frame refer to:
   the upper endpoint by `th_eb+len_eb`. For a given observation, this can be
   also computed directly using the `cva` function:
   ```{r}
-  cva(B=((1-1/r$df$w_eb[1])*r$sqrt_mu2/r$df$se[1]), Inf, alpha=0.1)$cv*
+  cva(m2=((1-1/r$df$w_eb[1])*r$sqrt_mu2/r$df$se[1])^2, Inf, alpha=0.1)$cv*
   r$df$w_eb[1]*r$df$se[1]
   r$df$len_eb[1]
   ```
-- `len_pa` Half-length $z_{1-\alpha/2}sqrt{w_i}\sigma_i$ of the parametric EBCI.
+- `len_pa` Half-length $z_{1-\alpha/2}\sqrt{w_i}\sigma_i$ of the parametric EBCI.
 - `w_opt` Shrinkage factor that optimizes the length of the resulting confidence
   interval, that is, the value of $w_i$ that minimizes (\ref{robust-ebci}) over
   $w_i$
@@ -151,7 +150,6 @@ The columns of the data frame refer to:
   the function `ebci`.
 - `len_us` Half-length $z_{1-\alpha/2}\sigma_i$ of the CI based on the unshrunk
   estimate
-- `ncov_pa`
 - `se` The standard error $\sigma_i$, as specified by the argument `se` of the
   `ebci` function.
 - `ncov_pa` Maximal non-coverage of the parametric EBCI.
@@ -172,7 +170,7 @@ Using length-optimal shrinkage tightens the robust EBCIs by about 6 percentage p
 ```{r}
 mean(r$df$len_op)/mean(r$df$len_eb)
 ```
-On the other hand, using the parametric EBCI yields CIs that midlly violate the
+On the other hand, using the parametric EBCI yields CIs that mildly violate the
 90% coverage requirement:
 ```{r}
 mean(r$df$ncov_pa)

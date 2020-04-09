@@ -3,17 +3,17 @@ context("Check optimal and EB shrinkage")
 test_that("Check shrinkage with cv_tbl ", {
     ## cva_tbl too coarse
     cv_tbl <- cva_tbl[cva_tbl$kappa==3 & cva_tbl$alpha==0.05, ]
-    cv_tbl2 <- cv_tbl[cv_tbl$B<=1, ]
-    expect_warning(w_opt(0.1, 3, cv_tbl=cv_tbl2))
+    cv_tbl2 <- cv_tbl[cv_tbl$m2<=1, ]
+    expect_warning(w_opt(0.1^2, 3, cv_tbl=cv_tbl2))
     expect_lt(max(abs(unlist(w_opt(1, 3, cv_tbl=cv_tbl))-unlist(w_opt(1, 3)))),
-              1e-4)
-    expect_lt(max(abs(unlist(w_opt(0.1, 3, cv_tbl=cv_tbl))-
-                      unlist(w_opt(0.1, 3)))), 4e-4)
+              3e-4)
+    expect_lt(max(abs(unlist(w_opt(0.01, 3, cv_tbl=cv_tbl))-
+                      unlist(w_opt(0.01, 3)))), 4e-4)
     cv_tbl <- cva_tbl[cva_tbl$kappa==Inf & cva_tbl$alpha==0.05, ]
-    expect_lt(max(abs(unlist(w_opt(0.1, Inf, cv_tbl=cv_tbl))-
-                      unlist(w_opt(0.1, Inf)))), 3e-4)
+    expect_lt(max(abs(unlist(w_opt(0.01, Inf, cv_tbl=cv_tbl))-
+                      unlist(w_opt(0.01, Inf)))), 3e-4)
     ## eb shrinkage should be close to optimal
-    expect_lt(max(abs(unlist(w_opt(20, 4))-unlist(w_eb(20, 4)))),
+    expect_lt(max(abs(unlist(w_opt(20^2, 4))-unlist(w_eb(20^2, 4)))),
               5e-5)
 
 })
@@ -43,6 +43,6 @@ test_that("Table 1 in paper", {
     testthat::expect_equal(unname(round(eb_table(i2,
                                                  ts$pop[ts$pop>300000]), 6)),
                            c(0.063182, Inf,  0.641786, -1.081536,  0.023759,
-                             0.315798, 0.411579, 0.147695, 0.107307, 0.091945,
-                             0.084915, 0.194525, 1.167070, 1.263687, 0.551635))
+                             0.315798, 0.411483, 0.147695, 0.107307, 0.091945,
+                             0.084915, 0.194525, 1.167075, 1.263687, 0.551635))
 })

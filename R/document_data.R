@@ -3,8 +3,7 @@
 #' @format A data frame with 4 variables:
 #' \describe{
 #'
-#' \item{\code{B}}{B Bound on the square root of the average squared normalized
-#' bias}
+#' \item{\code{m2}}{Bound on the second moment of the normalized bias}
 #'
 #' \item{\code{kappa}}{Bound on the kurtosis of the normalized bias}
 #'

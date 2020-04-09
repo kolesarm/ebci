@@ -2,25 +2,24 @@
 #'
 #' Compute linear shrinkage factor \eqn{w_{opt}}{w_opt} to minimize the length
 #' of the resulting Empirical Bayes confidence interval (EBCI).
-#' @param S Square root of the signal-to-noise ratio
-#'     \eqn{\sqrt{\mu_{2}}/\sigma}{sqrt(mu_2)/sigma}, where
-#'     \eqn{\sqrt{\mu_{2}}}{mu_2} is the variance of
+#' @param S Signal-to-noise ratio \eqn{\mu_{2}/\sigma}{mu_2/sigma}, where
+#'     \eqn{\mu_{2}}{mu_2} is the second moment of
 #'     \eqn{\theta-X'\delta}{theta-X*delta}, and \eqn{\sigma^2}{sigma^2} is the
 #'     variance of the preliminary estimator.
 #' @param kappa Kurtosis of \eqn{\theta-X'\delta}{theta-X*delta}.
 #' @param alpha Determines confidence level, \eqn{1-\alpha}{1-alpha}.
 #' @param cv_tbl Optionally, supply a data frame of critical values.
-#'     \code{cva(B, kappa, alpha)}, for different values of \code{B}, such as a
-#'     subset of the data frame \code{\link{cva_tbl}}, that matches the supplied
-#'     values of \code{alpha} and \code{kappa}. The data frame needs to contain
-#'     two variables, \code{B}, corresponding to the value of average squared
-#'     normalized bias, and \code{cv}, with the corresponding value of
-#'     \code{cva(B, kappa, alpha)}. If non \code{NULL}, for the purposes of
-#'     optimizing the shrinkage factor, compute the critical value \code{cva} by
-#'     interpolating between the critical values in this data frame, instead of
-#'     computing them from scratch. This can speed up the calculations.
-#' @return Returns a list with 3 components:
-#' \describe{
+#'     \code{cva(m2, kappa, alpha)}, for different values of \code{m2}, such as
+#'     a subset of the data frame \code{\link{cva_tbl}}, that matches the
+#'     supplied values of \code{alpha} and \code{kappa}. The data frame needs to
+#'     contain two variables, \code{m2}, corresponding to the value of second
+#'     moment of the normalized bias, and \code{cv}, with the corresponding
+#'     value of \code{cva(m2, kappa, alpha)}. If non \code{NULL}, for the
+#'     purposes of optimizing the shrinkage factor, compute the critical value
+#'     \code{cva} by interpolating between the critical values in this data
+#'     frame, instead of computing them from scratch. This can speed up the
+#'     calculations.
+#' @return Returns a list with 3 components: \describe{
 #'
 #' \item{\code{w}}{Optimal shrinkage factor \eqn{w_{opt}}{w_opt}}
 #'
@@ -29,8 +28,8 @@
 #' shrinkage given by \code{w}, and adding and subtracting \code{length} times
 #' the standard error \eqn{\sigma}{sigma} of the preliminary estimator.}
 #'
-#' \item{\code{B}}{Square root of the normalized bias,
-#' \eqn{(1/w-1)S}{(1/w-1)*S}}}
+#' \item{\code{m2}}{The second moment of the normalized bias,
+#' \eqn{(1/w-1)^{2}S}{(1/w-1)^2*S}}}
 #' @references{
 #'
 #' \cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
@@ -46,29 +45,28 @@
 w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
     if (!is.null(cv_tbl)) {
         ## Linearly interpolate
-        cv <- function(B) {
-            idx <- which.max(cv_tbl$B>B)
-            cv_tbl$cv[idx-1]+(B-cv_tbl$B[idx-1])/
-                (cv_tbl$B[idx]-cv_tbl$B[idx-1]) *
+        cv <- function(m2) {
+            idx <- which.max(cv_tbl$m2>m2)
+            cv_tbl$cv[idx-1]+(m2-cv_tbl$m2[idx-1])/
+                (cv_tbl$m2[idx]-cv_tbl$m2[idx-1]) *
                 (cv_tbl$cv[idx]-cv_tbl$cv[idx-1])
         }
-        maxbias <- max(cv_tbl$B)
+        maxbias <- max(cv_tbl$m2)
     } else {
-        cv <- function(B) cva(B, kappa=kappa, alpha=alpha, check=FALSE)$cv
-        ## Maxium bias (i.e B) is 100 to prevent numerical issues
-        maxbias <- 100
+        cv <- function(m2) cva(m2, kappa=kappa, alpha=alpha, check=FALSE)$cv
+        ## Maxium bias (i.e m2) is 100^2 to prevent numerical issues
+        maxbias <- 100^2
     }
-    ci_length <- function(w) cv((1/w-1)*S)*w
-    r <- stats::optimize(ci_length, c(1/(maxbias/S+1), 1), tol=tol)
-    B <- (1/r$minimum-1)*S
+    ci_length <- function(w) cv((1/w-1)^2*S)*w
+    r <- stats::optimize(ci_length, c(1/(sqrt(maxbias/S)+1), 1), tol=tol)
+    m2 <- (1/r$minimum-1)^2*S
     ## Recompute critical value, checking solution accuracy. If we're using
-    ## cv_tbl, then optimum will be at one of the values of B in the table, so
+    ## cv_tbl, then optimum will be at one of the values of m2 in the table, so
     ## solution should always be accurate
-    len <- cva((1/r$minimum-1)*S, kappa=kappa, alpha=alpha,
-                  check=TRUE)$cv*r$minimum
-    if (B > maxbias-1e-4)
-        warning("Corner solution: optimum reached  maximal bias/sd ratio")
-    list(w=r$minimum, length=len, B=B)
+    len <- cva(m2, kappa=kappa, alpha=alpha, check=TRUE)$cv*r$minimum
+    if (m2 > maxbias-1e-4)
+        warning("Corner solution: optimum reached at maximal normalized bias")
+    list(w=r$minimum, length=len, m2=m2)
 }
 
 #' Empirical Bayes estimator and confidence intervals
@@ -87,7 +85,7 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
 #' shrinkage given by \code{w}, and adding and subtracting \code{length} times
 #' the standard error \eqn{\sigma}{sigma} of the preliminary estimator.}
 #'
-#' \item{\code{B}}{Square root of the normalized bias, \eqn{1/S}.}
+#' \item{\code{m2}}{Second moment of the normalized bias, \code{1/m2}.}
 #'
 #' }
 #' @references{
@@ -104,8 +102,8 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
 #' w_opt(1, Inf)
 #' @export
 w_eb <- function(S, kappa=Inf, alpha=0.05) {
-    w <- S^2/(1+S^2)
-    list(w=w, length=cva(1/S, kappa=kappa, alpha=alpha, check=TRUE)$cv*w, B=1/S)
+    w <- S/(1+S)
+    list(w=w, length=cva(1/S, kappa=kappa, alpha=alpha, check=TRUE)$cv*w, m2=1/S)
 }
 
 
@@ -234,40 +232,39 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
     }
     za <- stats::qnorm(1-alpha/2)
     if (tstat) {
-        op <- w_opt(sqrt(mu2), kappa, alpha)
-        eb <- w_eb(sqrt(mu2), kappa, alpha)
+        op <- w_opt(mu2, kappa, alpha)
+        eb <- w_eb(mu2, kappa, alpha)
 
         th_eb <- se*(mu1+eb$w*(Yt-mu1))
         th_op <- se*(mu1+op$w*(Yt-mu1))
         ncov_pa <- rho(1/eb$w-1, kappa, za/sqrt(eb$w),
-                       check=TRUE)$size
+                       check=TRUE)$alpha
     } else {
         ## Pre-compute cva for this kurtosis
-        df <- data.frame(B=seq(0, 20, length.out=2001), kappa=kappa)
+        df <- data.frame(m2=seq(0, 20, length.out=2001)^2)
         cvj <- function(j)
-            ebci::cva(df$B[j], kappa=kappa, alpha, check=TRUE)$cv
+            ebci::cva(df$m2[j], kappa=kappa, alpha, check=TRUE)$cv
         df$cv <- if (cores>1)
                      unlist(parallel::mclapply(seq_len(nrow(df)), cvj,
                                                mc.cores=cores))
                  else
                      vapply(seq_len(nrow(df)), cvj, numeric(1))
-        df$alpha <- alpha
 
         ## Optimal shrinkage for each individual
         op <- vapply(se, function(se)
-            unlist(w_opt(sqrt(mu2)/se, kappa, cv_tbl=df,
+            unlist(w_opt(mu2/se^2, kappa, cv_tbl=df,
                               alpha=alpha)), numeric(3))
         op <- as.data.frame(t(op))
         ## EB shrinkage
         eb <- vapply(se, function(se)
-            unlist(w_eb(sqrt(mu2)/se, kappa, alpha)), numeric(3))
+            unlist(w_eb(mu2/se^2, kappa, alpha)), numeric(3))
         eb <- as.data.frame(t(eb))
 
         th_eb <- mu1+eb$w*(Yt-mu1)
         th_op <- mu1+op$w*(Yt-mu1)
         par_cov <- function(se)
             rho(se^2/mu2, kappa,
-                 za*sqrt(1+se^2/mu2), check=TRUE)$size
+                 za*sqrt(1+se^2/mu2), check=TRUE)$alpha
         ncov_pa <- vapply(se, par_cov, numeric(1))
     }
     df <- data.frame(w_eb=eb$w,

@@ -124,14 +124,14 @@ rho <- function(m2, kappa, chi, check=TRUE, len=5000) {
     t0 <- rt0(chi)$t0
 
     if (kappa == 1) {
-        list(size=r(m2, chi), x=c(0, m2), p=c(0, 1))
+        list(alpha=r(m2, chi), x=c(0, m2), p=c(0, 1))
     } else if (m2 >= t0) {
         ## Concave part of parameter space
-        list(size=r0, x=c(0, m2), p=c(0, 1))
+        list(alpha=r0, x=c(0, m2), p=c(0, 1))
     } else if (kappa==Inf || m2*kappa >= t0) {
         ## LF under rho: (0, t0) wp (1-m2/t0, m2/t0), E[t^2]=m2*t0
         ## So here kappa doesn't bind
-        list(size=r0, x=c(0, t0), p=c(1-m2/t0, m2/t0))
+        list(alpha=r0, x=c(0, t0), p=c(1-m2/t0, m2/t0))
     } else {
         ## First determine where delta(x, 0) is maximized
         tbar <- lam(0, chi)$x0
@@ -177,10 +177,10 @@ rho <- function(m2, kappa, chi, check=TRUE, len=5000) {
                               ". Difference>0.001. This happened for ",
                               "chi = ", chi, ", m2 = ", m2, ", kappa = ", kappa)
                 warning(msg)
-                return(list(size=NA, x=NA, p=NA))
+                return(list(alpha=NA, x=NA, p=NA))
             }
         }
-        list(size=unname(rr$objective), x=xs0, p=ps0)
+        list(alpha=unname(rr$objective), x=xs0, p=ps0)
     }
 }
 
@@ -196,24 +196,23 @@ CVb <- function(B, alpha=0.05) {
 #'
 #' Computes the critical value \eqn{cva_{\alpha}(m_{2}, \kappa)}{cva_alpha(m_2,
 #' kappa)} from Armstrong, Kolesár, and Plagborg-Møller (2020).
-#' @param B Bound on the square root of the average squared normalized bias,
-#'     \eqn{\sqrt{m_{2}}}{sqrt(m_2)}
+#' @param m2 Bound on second moment of the normalized bias, \eqn{m_{2}}{m_2}
 #' @param kappa Bound on the kurtosis of the normalized bias,
 #'     \eqn{\kappa}{kappa}
 #' @param alpha Determines confidence level, \eqn{1-\alpha}{1-alpha}.
 #' @param check If \code{TRUE}, verify accuracy of the solution by checking that
-#'     the implied least favorable distribution satisfies the \code{B} and
+#'     the implied least favorable distribution satisfies the \code{m2} and
 #'     \code{kappa} constraints and yields the same non-coverage rate. If this
 #'     fails (perhaps due to numerical accuracy issues), solve a finite-grid
-#'     approximation (by discretizing the support of the bias) to the primal
-#'     linear programing problem, and check that it agrees with the dual
+#'     approximation (by discretizing the support of the normalized bias) to the
+#'     primal linear programing problem, and check that it agrees with the dual
 #'     solution.
 #' @return Returns a list with 4 components: \describe{
 #'
 #' \item{\code{cv}}{Critical value for constructing two-sided confidence
 #' intervals.}
 #'
-#' \item{\code{size}}{The argument \code{alpha}.}
+#' \item{\code{alpha}}{The argument \code{alpha}.}
 #'
 #' \item{\code{x}}{Support points for the least favorable distribution for the
 #' squared normalized bias, \eqn{b^2}.}
@@ -234,28 +233,31 @@ CVb <- function(B, alpha=0.05) {
 #' ## With a constraint
 #' cva(1, kappa=3)
 #' @export
-cva <- function(B, kappa=Inf, alpha=0.05, check=TRUE) {
-    if (kappa==1 | B==0) {
-        list(cv=CVb(B, alpha), size=alpha, x=c(0, B), p=c(0, 1))
+cva <- function(m2, kappa=Inf, alpha=0.05, check=TRUE) {
+    if (kappa==1 | m2==0) {
+        list(cv=CVb(sqrt(m2), alpha), alpha=alpha, x=c(0, sqrt(m2)), p=c(0, 1))
     } else {
-        ## limits: critical values under kappa=1 and kappa=Inf to get bounds on
-        ## cv
-        lo <- CVb(B, alpha)-0.01
+        ## ## limits: critical values under kappa=1 and kappa=Inf to get bounds on
+        ## ## cv
+        lo <- CVb(sqrt(m2), alpha)-0.01
         limits <- c(lo, NA)
-        up <- stats::qnorm(1-alpha/2)+B
-        while (rho0(B^2, up) >= alpha) {
+
+        ## By Chebyshev inequality, we enter while loop at most once
+        up <- sqrt((1+m2)/alpha)/2
+        while (rho0(m2, up) >= alpha) {
             lo <- up
             up <- 2*up
         }
-        limits[2] <- stats::uniroot(function(chi) rho0(B^2, chi)-alpha,
+        limits[2] <- stats::uniroot(function(chi) rho0(m2, chi)-alpha,
                                     c(lo, up), tol=tol)$root
+
         ## If rejection rate is already close to alpha, keep cv under kappa=Inf
-        if (rho(B^2, kappa, limits[2])$size-alpha < -1e-5)
-            cv <- stats::uniroot(function(chi) rho(B^2, kappa, chi,
-                                            check=FALSE)$size-alpha,
+        if (rho(m2, kappa, limits[2])$alpha-alpha < -1e-5)
+            cv <- stats::uniroot(function(chi) rho(m2, kappa, chi,
+                                            check=FALSE)$alpha-alpha,
                           limits, tol=tol)$root
         else
             cv <- limits[2]
-        c(cv=cv, rho(B^2, kappa, cv, check=check, len=5000))
+        c(cv=cv, rho(m2, kappa, cv, check=check, len=5000))
     }
 }

@@ -4,11 +4,10 @@
 \alias{cva}
 \title{Compute average coverage critical value under moment constraints.}
 \usage{
-cva(B, kappa = Inf, alpha = 0.05, check = TRUE)
+cva(m2, kappa = Inf, alpha = 0.05, check = TRUE)
 }
 \arguments{
-\item{B}{Bound on the square root of the average squared normalized bias,
-\eqn{\sqrt{m_{2}}}{sqrt(m_2)}}
+\item{m2}{Bound on second moment of the normalized bias, \eqn{m_{2}}{m_2}}
 
 \item{kappa}{Bound on the kurtosis of the normalized bias,
 \eqn{\kappa}{kappa}}
@@ -16,11 +15,11 @@ cva(B, kappa = Inf, alpha = 0.05, check = TRUE)
 \item{alpha}{Determines confidence level, \eqn{1-\alpha}{1-alpha}.}
 
 \item{check}{If \code{TRUE}, verify accuracy of the solution by checking that
-the implied least favorable distribution satisfies the \code{B} and
+the implied least favorable distribution satisfies the \code{m2} and
 \code{kappa} constraints and yields the same non-coverage rate. If this
 fails (perhaps due to numerical accuracy issues), solve a finite-grid
-approximation (by discretizing the support of the bias) to the primal
-linear programing problem, and check that it agrees with the dual
+approximation (by discretizing the support of the normalized bias) to the
+primal linear programing problem, and check that it agrees with the dual
 solution.}
 }
 \value{
@@ -29,7 +28,7 @@ Returns a list with 4 components: \describe{
 \item{\code{cv}}{Critical value for constructing two-sided confidence
 intervals.}
 
-\item{\code{size}}{The argument \code{alpha}.}
+\item{\code{alpha}}{The argument \code{alpha}.}
 
 \item{\code{x}}{Support points for the least favorable distribution for the
 squared normalized bias, \eqn{b^2}.}

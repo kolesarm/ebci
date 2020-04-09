@@ -7,9 +7,8 @@
 w_eb(S, kappa = Inf, alpha = 0.05)
 }
 \arguments{
-\item{S}{Square root of the signal-to-noise ratio
-\eqn{\sqrt{\mu_{2}}/\sigma}{sqrt(mu_2)/sigma}, where
-\eqn{\sqrt{\mu_{2}}}{mu_2} is the variance of
+\item{S}{Signal-to-noise ratio \eqn{\mu_{2}/\sigma}{mu_2/sigma}, where
+\eqn{\mu_{2}}{mu_2} is the second moment of
 \eqn{\theta-X'\delta}{theta-X*delta}, and \eqn{\sigma^2}{sigma^2} is the
 variance of the preliminary estimator.}
 
@@ -28,7 +27,7 @@ interval, so that the interval obtains by taking the estimator based on
 shrinkage given by \code{w}, and adding and subtracting \code{length} times
 the standard error \eqn{\sigma}{sigma} of the preliminary estimator.}
 
-\item{\code{B}}{Square root of the normalized bias, \eqn{1/S}.}
+\item{\code{m2}}{Second moment of the normalized bias, \code{1/m2}.}
 
 }
 }

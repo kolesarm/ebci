@@ -6,12 +6,12 @@ knitr::opts_chunk$set(tidy = TRUE, collapse=TRUE, comment = "#>",
 
 ## -----------------------------------------------------------------------------
 library("ebci")
-## If B=sqrt(m_2)=0, then we get the usual critical value
-cva(B=0, kappa=Inf, alpha=0.05)$cv
-## Otherwise the critical value is larger. Suppose m_2=4, so that B=2:
-cva(B=2, kappa=Inf, alpha=0.05)$cv
+## If m_2=0, then we get the usual critical value
+cva(m2=0, kappa=Inf, alpha=0.05)$cv
+## Otherwise the critical value is larger:
+cva(m2=4, kappa=Inf, alpha=0.05)$cv
 ## Imposing a constraint on kurtosis tightens it
-cva(B=2, kappa=3, alpha=0.05)$cv
+cva(m2=4, kappa=3, alpha=0.05)$cv
 
 ## -----------------------------------------------------------------------------
 ## For illustration, only use 20 largest CZ
@@ -30,7 +30,7 @@ c(r$sqrt_mu2, r$kappa)
 names(r$df)
 
 ## -----------------------------------------------------------------------------
-cva(B=((1-1/r$df$w_eb[1])*r$sqrt_mu2/r$df$se[1]), Inf, alpha=0.1)$cv*
+cva(m2=((1-1/r$df$w_eb[1])*r$sqrt_mu2/r$df$se[1])^2, Inf, alpha=0.1)$cv*
 r$df$w_eb[1]*r$df$se[1]
 r$df$len_eb[1]
 
