@@ -103,7 +103,8 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
 #' @export
 w_eb <- function(S, kappa=Inf, alpha=0.05) {
     w <- S/(1+S)
-    list(w=w, length=cva(1/S, kappa=kappa, alpha=alpha, check=TRUE)$cv*w, m2=1/S)
+    list(w=w, length=cva(1/S, kappa=kappa, alpha=alpha, check=TRUE)$cv*w,
+         m2=1/S)
 }
 
 

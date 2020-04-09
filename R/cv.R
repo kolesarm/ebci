@@ -237,17 +237,12 @@ cva <- function(m2, kappa=Inf, alpha=0.05, check=TRUE) {
     if (kappa==1 | m2==0) {
         list(cv=CVb(sqrt(m2), alpha), alpha=alpha, x=c(0, sqrt(m2)), p=c(0, 1))
     } else {
-        ## ## limits: critical values under kappa=1 and kappa=Inf to get bounds on
-        ## ## cv
+        ## limits: critical values under kappa=1 and kappa=Inf to get bounds on
+        ## cv
         lo <- CVb(sqrt(m2), alpha)-0.01
         limits <- c(lo, NA)
-
-        ## By Chebyshev inequality, we enter while loop at most once
-        up <- sqrt((1+m2)/alpha)/2
-        while (rho0(m2, up) >= alpha) {
-            lo <- up
-            up <- 2*up
-        }
+        ## Use Chebyshev inequality, we
+        up <- sqrt((1+m2)/alpha)
         limits[2] <- stats::uniroot(function(chi) rho0(m2, chi)-alpha,
                                     c(lo, up), tol=tol)$root
 

@@ -21,7 +21,7 @@ test_that("Check shrinkage with cv_tbl ", {
 test_that("Table 1 in paper", {
     ts <- cz[!is.na(cz$theta25), ]
     eb_table <- function(res, wgt) {
-        res$df$"E[mu_2/sigma_i^2]" <- res$sqrt_mu2^2/res$df$se^2
+        res$df$sn <- res$sqrt_mu2^2/res$df$se^2
         l1 <- vapply(res$df, weighted.mean, FUN.VALUE=numeric(1), w=wgt)
         ret <- c("sqrt{mu_2}"=res$sqrt_mu2,
                  "kappa"=res$kappa,

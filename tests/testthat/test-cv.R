@@ -22,7 +22,8 @@ test_that("Simple critical value sanity checks", {
     expect_equal(cva(m2=1, kappa=3, check=TRUE, alpha=0.2)$cv, 1.8494683)
     expect_lt(abs(cva(m2=25, kappa=1.000001)$cv-CVb(B=5)), 1e-5)
     expect_lt(abs(cva(m2=0.01^2, kappa=15)$cv-CVb(B=0.01)), 1e-5)
-    expect_lt(abs(cva(m2=0.01^2, kappa=15, alpha=0.2)$cv-CVb(B=0.01, alpha=0.2)),
+    expect_lt(abs(cva(m2=0.01^2,
+                      kappa=15, alpha=0.2)$cv-CVb(B=0.01, alpha=0.2)),
               1e-5)
 })
 

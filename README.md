@@ -23,9 +23,8 @@ remotes::install_github("kolesarm/ebci")
 
 ``` r
 library("ebci")
-## Only second moment constraints, B=sqrt(m_2)=2.
-## Note that B is the square root of the second moment of the normalized bias.
-cva(B=2, kappa=Inf, alpha=0.05)
+## Only second moment constraints, m_2=4.
+cva(m2=4, kappa=Inf, alpha=0.05)
 ## Add a constraint that kurtosis equals 3
-cva(B=2, kappa=3, alpha=0.05)
+cva(m2=4, kappa=3, alpha=0.05)
 ```
