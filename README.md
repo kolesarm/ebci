@@ -8,18 +8,22 @@ This R package implements robust empirical Bayes confidence intervals from
 [manual](doc/manual.pdf) for documentation of the package functions, an the
 [package vignette](doc/ebci.pdf) for a description of the package and an example
 of its usage (available through `vignette("ebci")` once the package is
-installed).
+installed). See [ebci_matlab](https://github.com/mikkelpm/ebci_matlab) for a
+Matlab version of this package.
 
 ## Installation
 
 You can get the current development version from GitHub:
 
 ``` r
-install.packages("remotes") # if not installed
+install.packages("remotes") # if the remotes package is not installed
 remotes::install_github("kolesarm/ebci")
 ```
 
 ## Example
+
+Calculation of the critical values used to construct robust empirical Bayes
+confidence intervals:
 
 ``` r
 library("ebci")
