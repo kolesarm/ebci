@@ -42,20 +42,24 @@ r3 <- function(t, chi) {
 rt0 <- function(chi) {
     ## Find point where we touch origin
     f0 <- function(t) r(t, chi)-t*r1(t, chi)-r(0, chi)
-    if (chi^2<3) {
+    if (chi^2 < 3) {
         t0 <- ip <- 0
     } else {
+        ip <- stats::uniroot(r2, c(chi^2-3, chi^2), tol=tol, chi=chi)$root
         ## Make sure upper endpoint of interval is positive; it always is for
         ## chi< 100,000, so we should never enter the while loop
         up <- 2*chi^2
-        lo <- chi^2-3
+        lo <- ip
         while (f0(up) < 0) {
             lo <- up
             up <- 2*up
         }
-
-        t0 <- stats::uniroot(f0, c(lo, up), tol=tol)$root
-        ip <- stats::uniroot(r2, c(chi^2-3, chi^2), tol=tol, chi=chi)$root
+        t0 <- lo
+        if (f0(lo) < 0) {
+            t0 <- stats::uniroot(f0, c(lo, up), tol=tol)$root
+        } else if (f0(lo) > tol) {
+            warning("Failed to solve for t0 using rt0 at chi=", chi)
+        }
     }
     list(t0=t0, ip=ip)
 }

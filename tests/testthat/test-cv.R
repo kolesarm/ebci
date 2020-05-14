@@ -1,5 +1,19 @@
 context("Check critical value calculations")
 
+test_that("Numerical issues with rt0", {
+
+    ## Convert return value from list to vector
+    rt00 <- function(chi) unlist(rt0(chi))
+
+    chis <- sqrt(3)+ exp(seq(log(1e-12), log(1e-3), length.out=200))
+    f0 <- vapply(chis, rt00, numeric(2))
+    expect_equal(sum(f0[1, ]<f0[2, ]), 0L)
+
+    chis <- 10^seq(0, 5, length.out=200)
+    f1 <- vapply(chis, rt00, numeric(2))
+    expect_equal(sum(f1[1, ]<f1[2, ]), 0L)
+})
+
 test_that("Simple critical value sanity checks", {
     expect_equal(cva(m2=0, kappa=1)$cv, stats::qnorm(0.975))
     expect_equal(cva(m2=0, kappa=4)$cv, stats::qnorm(0.975))
