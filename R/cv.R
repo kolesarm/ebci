@@ -45,7 +45,12 @@ rt0 <- function(chi) {
     if (chi^2 < 3) {
         t0 <- ip <- 0
     } else {
-        ip <- stats::uniroot(r2, c(chi^2-3, chi^2), tol=tol, chi=chi)$root
+        ## Avoid issues when chi is numerically very large
+        if (abs(r2(chi^2-3/2, chi=chi)) < tol | (chi^2-3)-chi^2==0L)
+            ip <- chi^2-3/2
+        else
+            ip <- stats::uniroot(r2, c(chi^2-3, chi^2), tol=tol, chi=chi)$root
+
         ## Make sure upper endpoint of interval is positive; it always is for
         ## chi< 100,000, so we should never enter the while loop
         up <- 2*chi^2
@@ -105,7 +110,7 @@ lam <- function(x0, chi) {
     ## chi is large
     der <- delta1(xs, x0, chi) >= 0
 
-    if (all(der<=0))
+    if (all(der<=0) | max(abs(delta1(xs, x0, chi))) < tol^2)
         return(list(lam=delta(0, x0, chi), x0=0))
     else if (all(diff(der)<=0)) {
         ## Function first increasing, then decreasing
@@ -241,11 +246,19 @@ cva <- function(m2, kappa=Inf, alpha=0.05, check=TRUE) {
     if (kappa==1 | m2==0) {
         list(cv=CVb(sqrt(m2), alpha), alpha=alpha, x=c(0, sqrt(m2)), p=c(0, 1))
     } else {
+        ## For very large values of m2, assume kappa=Inf
+        if (1/m2 < tol & kappa!=Inf) {
+            res <- cva(m2, kappa=Inf, alpha=0.05, check=FALSE)
+            if (kappa < sum(res$x^2*res$p)/m2^2)
+                warning("Value of m2 (", m2, ") is too large to reliably",
+                        " compute critical value. Assuming kappa constraint not binding")
+            return(res)
+        }
         ## limits: critical values under kappa=1 and kappa=Inf to get bounds on
         ## cv
         lo <- CVb(sqrt(m2), alpha)-0.01
         limits <- c(lo, NA)
-        ## Use Chebyshev inequality, we
+        ## Use Chebyshev inequality
         up <- sqrt((1+m2)/alpha)
         limits[2] <- stats::uniroot(function(chi) rho0(m2, chi)-alpha,
                                     c(lo, up), tol=tol)$root

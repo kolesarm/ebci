@@ -12,6 +12,17 @@ test_that("Numerical issues with rt0", {
     chis <- 10^seq(0, 5, length.out=200)
     f1 <- vapply(chis, rt00, numeric(2))
     expect_equal(sum(f1[1, ]<f1[2, ]), 0L)
+
+    ## For large values of m2, Chebyshev inequality should be sharp
+    m2 <- 1/1.11022e-16
+    expect_equal(cva(m2)$cv/sqrt((1+m2)/0.05), 1L)
+    expect_equal(cva(m2/100)$cv/sqrt((1+m2/100)/0.05), 1L)
+
+    ## Assume kappa constraint not binding for large m2
+    expect_warning(cv0 <- cva(1/1.11022e-16, kappa=3, check=FALSE)$cv)
+    expect_warning(rho(1/1.11022e-16, kappa=3, chi=cv0))
+
+    expect_equal(lam(x0=180144474255572736, chi=424434295.36931574345)$x0, 0L)
 })
 
 test_that("Simple critical value sanity checks", {
