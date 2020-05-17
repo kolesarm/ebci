@@ -262,7 +262,7 @@ cva <- function(m2, kappa=Inf, alpha=0.05, check=TRUE) {
         ## Use Chebyshev inequality
         up <- sqrt((1+m2)/alpha)
         ## If upper rejection rate close to alpha, keep it
-        if ( (rho0(m2, up)-alpha) < 9e-6)
+        if (abs(rho0(m2, up)-alpha) < 9e-6)
             limits[2] <- up
         else
             limits[2] <- stats::uniroot(function(chi) rho0(m2, chi)-alpha,
