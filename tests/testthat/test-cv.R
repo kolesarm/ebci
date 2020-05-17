@@ -19,8 +19,8 @@ test_that("Numerical issues with rt0", {
     expect_equal(cva(m2/100)$cv/sqrt((1+m2/100)/0.05), 1L)
 
     ## Assume kappa constraint not binding for large m2
-    expect_warning(cv0 <- cva(1/1.11022e-16, kappa=3, check=FALSE)$cv)
-    expect_warning(rho(1/1.11022e-16, kappa=3, chi=cv0))
+    expect_warning(cv0 <- cva(m2, kappa=3, check=FALSE)$cv)
+    expect_warning(rho(m2, kappa=3, chi=cv0))
 
     expect_equal(lam(x0=180144474255572736, chi=424434295.36931574345)$x0, 0L)
 })

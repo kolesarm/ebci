@@ -248,10 +248,11 @@ cva <- function(m2, kappa=Inf, alpha=0.05, check=TRUE) {
     } else {
         ## For very large values of m2, assume kappa=Inf
         if (1/m2 < tol & kappa!=Inf) {
-            res <- cva(m2, kappa=Inf, alpha=0.05, check=FALSE)
+            res <- cva(m2, kappa=Inf, alpha=alpha, check=FALSE)
             if (kappa < sum(res$x^2*res$p)/m2^2)
                 warning("Value of m2 (", m2, ") is too large to reliably",
-                        " compute critical value. Assuming kappa constraint not binding")
+                        " compute the critical value. ",
+                        "Assuming kappa constraint not binding")
             return(res)
         }
         ## limits: critical values under kappa=1 and kappa=Inf to get bounds on
