@@ -22,6 +22,12 @@ test_that("Numerical issues with rt0", {
     expect_warning(cv0 <- cva(m2, kappa=3, check=FALSE)$cv)
     expect_warning(rho(m2, kappa=3, chi=cv0))
 
+    m2s <- seq(1/1000, 100, length.out=10)*m2
+    vals <- vapply(m2s,
+           function(r) cva(r, kappa=400, check=FALSE, alpha=0.1)$cv,
+           numeric(1))
+    expect_equal(vals/sqrt((1+m2s)/0.1), rep(1, length(m2s)))
+
     expect_equal(lam(x0=180144474255572736, chi=424434295.36931574345)$x0, 0L)
 })
 
@@ -50,6 +56,12 @@ test_that("Simple critical value sanity checks", {
     expect_lt(abs(cva(m2=0.01^2,
                       kappa=15, alpha=0.2)$cv-CVb(B=0.01, alpha=0.2)),
               1e-5)
+
+    ## Test LF distribution
+    r1 <- cva(m2=4, kappa=1.000001, alpha=0.1)
+    r2 <- cva(m2=4, kappa=1L, alpha=0.1)
+    expect_lt(r1$x[which.max(r1$p)]-r2$x[which.max(r2$p)], 1e-3)
+    expect_lt(abs(r1$p[which.max(r1$p)]-1), 1e-5)
 })
 
 test_that("Check large values", {

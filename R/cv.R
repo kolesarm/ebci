@@ -244,7 +244,7 @@ CVb <- function(B, alpha=0.05) {
 #' @export
 cva <- function(m2, kappa=Inf, alpha=0.05, check=TRUE) {
     if (kappa==1 | m2==0) {
-        list(cv=CVb(sqrt(m2), alpha), alpha=alpha, x=c(0, sqrt(m2)), p=c(0, 1))
+        list(cv=CVb(sqrt(m2), alpha), alpha=alpha, x=c(0, m2), p=c(0, 1))
     } else {
         ## For very large values of m2, assume kappa=Inf
         if (1/m2 < tol & kappa!=Inf) {
@@ -261,8 +261,12 @@ cva <- function(m2, kappa=Inf, alpha=0.05, check=TRUE) {
         limits <- c(lo, NA)
         ## Use Chebyshev inequality
         up <- sqrt((1+m2)/alpha)
-        limits[2] <- stats::uniroot(function(chi) rho0(m2, chi)-alpha,
-                                    c(lo, up), tol=tol)$root
+        ## If upper rejection rate close to alpha, keep it
+        if ( (rho0(m2, up)-alpha) < 9e-6)
+            limits[2] <- up
+        else
+            limits[2] <- stats::uniroot(function(chi) rho0(m2, chi)-alpha,
+                                        c(lo, up), tol=tol)$root
 
         ## If rejection rate is already close to alpha, keep cv under kappa=Inf
         if (rho(m2, kappa, limits[2])$alpha-alpha < -1e-5)
