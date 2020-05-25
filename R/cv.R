@@ -104,27 +104,41 @@ lam <- function(x0, chi) {
     if (x0 >= xs[1]) {
         xs <- c(0, xs[1])
     } else {
-        xs <- c(0, x0, xs)
+        xs <- unique(c(0, x0, xs))
     }
-    ## We want >= since derivative at zero may be numerically close to zero if
-    ## chi is large
-    der <- delta1(xs, x0, chi) >= 0
-
-    if (all(der<=0) | max(abs(delta1(xs, x0, chi))) < tol^2)
-        return(list(lam=delta(0, x0, chi), x0=0))
-    else if (all(diff(der)<=0)) {
+    der <- delta1(xs, x0, chi)
+    val <- delta(xs, x0, chi)
+    opt0 <- list(lam=val[1], x0=0L)
+    ## Expect delta has single maximum, so first increasing, then
+    ## decreasing, up to numerical tolerance
+    if ((all(der <= 0) & which.max(val)==1)) {
+        return(opt0)
+    } else if (all(diff(der>=0)<=0) & der[length(der)]<=0) {
         ## Function first increasing, then decreasing
-        start <- xs[which.min(der)-1]
-        end <- xs[which.min(der)]
+        start <- xs[which.min(der>=0)-1]
+        end <- xs[which.min(der>=0)]
+    } else if (max(abs(der)) < 1e-5) {
+        ## Determine interval based on value of delta, numerical accuracy of
+        ## delta1 only 7e-6
+        start <- xs[max(which.max(val)-1, 1)]
+        end <- xs[min(which.max(val)+1, length(val))]
     } else {
         stop(paste0("There are multiple optima in the function delta(x, x0=",
                     x0, ", chi=", chi, ")"))
     }
-
     rr1 <- stats::optimize(function(x) -delta(x, x0, chi),
                            c(start, end), tol=tol)
-
-    list(lam=-rr1$objective, x0=unname(rr1$minimum))
+    ## Finally, check optimum at 0 not higher, we could miss it due to numerical
+    ## accuracy issues
+    if (-rr1$objective > opt0$lam) {
+        return(list(lam=-rr1$objective, x0=unname(rr1$minimum)))
+    } else if (-rr1$objective > opt0$lam - 10^3*tol) {
+        return(opt0)
+    } else {
+        warning(paste0("Optimum may be wrong in lam(x0=",
+                       x0, ", chi=", chi, ")"))
+        return(opt0)
+    }
 }
 
 ## \rho(m_{2}, mu_{4}, \chi)

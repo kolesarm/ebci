@@ -28,7 +28,12 @@ test_that("Numerical issues with rt0", {
            numeric(1))
     expect_equal(vals/sqrt((1+m2s)/0.1), rep(1, length(m2s)))
 
-    expect_equal(lam(x0=180144474255572736, chi=424434295.36931574345)$x0, 0L)
+    ## This is increasing, maximum at 4.8518e-26, close to 1.
+    expect_equal(lam(x0=180144474255572736,
+                     chi=424434295.36931574345)$lam/4.851805e-26, 1L)
+    ## This one is decreasing, max should be at 0
+    expect_equal(lam(x0=12577.803781, chi=109.857326)$x0, 0L)
+
 })
 
 test_that("Simple critical value sanity checks", {
@@ -39,6 +44,9 @@ test_that("Simple critical value sanity checks", {
     expect_equal(cva(m2=1, kappa=1)$cv, CVb(B=1))
     expect_equal(cva(m2=100^2, kappa=1)$cv, CVb(B=100))
     expect_equal(cva(m2=0, kappa=1)$cv, CVb(B=0))
+    expect_equal(rho(m2=4, kappa=1,
+                     chi=cva(m2=4, kappa=1)$cv)$alpha, 0.05)
+
 
     expect_equal(cva(m2=1, kappa=10000, check=TRUE, alpha=0.2)$cv,
                  cva(m2=1, kappa=Inf, check=TRUE, alpha=0.2)$cv)
