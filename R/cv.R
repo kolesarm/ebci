@@ -257,7 +257,9 @@ CVb <- function(B, alpha=0.05) {
 #' cva(1, kappa=3)
 #' @export
 cva <- function(m2, kappa=Inf, alpha=0.05, check=TRUE) {
-    if (kappa==1 | m2==0) {
+    if (m2 == Inf) {
+        return(list(cv=NA, alpha=alpha, x=c(0, m2), p=c(0, 1)))
+    } else if (kappa==1 | m2==0) {
         list(cv=CVb(sqrt(m2), alpha), alpha=alpha, x=c(0, m2), p=c(0, 1))
     } else {
         ## For very large values of m2, assume kappa=Inf

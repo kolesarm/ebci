@@ -11,6 +11,8 @@ ebci(
   weights,
   alpha = 0.1,
   kappa = NULL,
+  wopt = TRUE,
+  fs_correction = "PMT",
   tstat = FALSE,
   cores = max(parallel::detectCores() - 1L, 1L)
 )
@@ -42,12 +44,25 @@ process in computing \eqn{\delta}{delta}, \eqn{\mu_2}{mu_2} and
 \eqn{\kappa}{kappe} of \eqn{\theta-X'\delta}{theta-X*delta} (such as
 \code{Inf}), instead of computing it.}
 
+\item{wopt}{If \code{TRUE}, also compute length-optimal robust EBCIs. These
+are robust EBCIs centered at length-optimal shrinkage factors
+\code{\link{w_opt}}.}
+
+\item{fs_correction}{Finite-sample correction method used to compute
+\eqn{\mu_2}{mu_2} and \eqn{\kappa}{kappa}. These corrections ensure that
+we do not shrink the preliminary estimates \code{Y} all the way to zero.
+If \code{"PMT"}, use posterior mean truncation, if \code{"FPLIB"} use
+limited information Bayesian approach with a flat prior, and if
+\code{"none"}, truncate the estimates at \code{0} for \eqn{\mu_2}{mu_2}
+and \code{1} for \eqn{\kappa}{kappa}.}
+
 \item{tstat}{If \code{TRUE}, shrink the t-statistics \code{Y/se} rather than
 the preliminary estimates \code{Y}.}
 
-\item{cores}{Number of cores to use. By default, the computation of the
-length-optimal shrinkage factors \code{\link{w_opt}} is parallelized if
-there are more than 30 observations to speed up the calculations.}
+\item{cores}{Number of cores to use when computing length-optimal robust
+EBCIs. By default, the computation of the length-optimal shrinkage
+factors \code{\link{w_opt}} is parallelized if there are more than 30
+observations to speed up the calculations.}
 }
 \value{
 Returns a list with the following components: \describe{
@@ -103,8 +118,7 @@ and associated robust empirical Bayes confidence intervals (EBCIs), as well
 as length-optimal robust EBCIs.
 }
 \examples{
-ebci(theta25 ~ stayer25, cz, se25, pop/pop, tstat=TRUE)
-ebci(theta25 ~ 0, cz, se25, pop/pop, tstat=TRUE)
+ebci(theta25 ~ stayer25, cz, se25, 1/se25^2, tstat=FALSE, cores=1)
 }
 \references{
 {

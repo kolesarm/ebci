@@ -37,7 +37,8 @@ test_that("Table 1 in paper", {
                              1.002058,   1.008492,   0.773446))
     ## Only large CZ to  make it faster
     df <- cz[sort(cz$pop, index.return=TRUE, decreasing=TRUE)$ix[1:10], ]
-    i2 <- ebci(formula=theta25~stayer25, data=df, se=se25, alpha=0.1)
+    i2 <- ebci(formula=theta25~stayer25, data=df, se=se25, alpha=0.1,
+               fs_correction="none")
     i3 <- ebci(formula=theta25~0, data=df, se=se25, alpha=0.05, kappa=Inf)
 
     testthat::expect_equal(unname(round(eb_table(i2), 6)),
@@ -55,5 +56,5 @@ test_that("ebci function problems", {
     ## negative mu2 estimate
     df <- cz[sort(cz$pop, index.return=TRUE, decreasing=TRUE)$ix[1:100], ]
     expect_warning(r <- ebci(formula=theta25~stayer25, data=df, kappa=Inf,
-                             se=se25, alpha=0.1, cores=1))
+                             se=se25, alpha=0.1, cores=1, fs_correction="none"))
 })

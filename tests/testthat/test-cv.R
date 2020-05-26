@@ -47,7 +47,6 @@ test_that("Simple critical value sanity checks", {
     expect_equal(rho(m2=4, kappa=1,
                      chi=cva(m2=4, kappa=1)$cv)$alpha, 0.05)
 
-
     expect_equal(cva(m2=1, kappa=10000, check=TRUE, alpha=0.2)$cv,
                  cva(m2=1, kappa=Inf, check=TRUE, alpha=0.2)$cv)
     ## Here under kappa=Inf, solution has kurtosis (sol$x[2]^2*sol$p[2])/16=17.4

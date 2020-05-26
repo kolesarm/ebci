@@ -61,9 +61,14 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
         minbias <- 0
     }
     ci_length <- function(w) cv((1/w-1)^2*S)*w
-    r <- stats::optimize(ci_length, c(1/(sqrt(maxbias/S)+1),
-                                      1/(sqrt(minbias/S)+1)), tol=tol)
-    m2 <- (1/r$minimum-1)^2*S
+    if (S > tol) {
+        r <- stats::optimize(ci_length, c(1/(sqrt(maxbias/S)+1),
+                                          1/(sqrt(minbias/max(S, tol))+1)), tol=tol)
+        m2 <- (1/r$minimum-1)^2*S
+    } else {
+        r <- list(minimum=0, objective=NA)
+        m2 <- Inf
+    }
     ## Recompute critical value, checking solution accuracy. If we're using
     ## cv_tbl, then optimum will be at one of the values of m2 in the table, so
     ## solution should always be accurate
@@ -137,11 +142,22 @@ w_eb <- function(S, kappa=Inf, alpha=0.05) {
 #' @param kappa If non-\code{NULL}, use pre-specified value for the kurtosis
 #'     \eqn{\kappa}{kappe} of \eqn{\theta-X'\delta}{theta-X*delta} (such as
 #'     \code{Inf}), instead of computing it.
+#' @param fs_correction Finite-sample correction method used to compute
+#'     \eqn{\mu_2}{mu_2} and \eqn{\kappa}{kappa}. These corrections ensure that
+#'     we do not shrink the preliminary estimates \code{Y} all the way to zero.
+#'     If \code{"PMT"}, use posterior mean truncation, if \code{"FPLIB"} use
+#'     limited information Bayesian approach with a flat prior, and if
+#'     \code{"none"}, truncate the estimates at \code{0} for \eqn{\mu_2}{mu_2}
+#'     and \code{1} for \eqn{\kappa}{kappa}.
 #' @param tstat If \code{TRUE}, shrink the t-statistics \code{Y/se} rather than
 #'     the preliminary estimates \code{Y}.
-#' @param cores Number of cores to use. By default, the computation of the
-#'     length-optimal shrinkage factors \code{\link{w_opt}} is parallelized if
-#'     there are more than 30 observations to speed up the calculations.
+#' @param wopt If \code{TRUE}, also compute length-optimal robust EBCIs. These
+#'     are robust EBCIs centered at length-optimal shrinkage factors
+#'     \code{\link{w_opt}}.
+#' @param cores Number of cores to use when computing length-optimal robust
+#'     EBCIs. By default, the computation of the length-optimal shrinkage
+#'     factors \code{\link{w_opt}} is parallelized if there are more than 30
+#'     observations to speed up the calculations.
 #' @return Returns a list with the following components: \describe{
 #'
 #' \item{\code{sqrt_mu2}}{Square root of the estimated second moment of
@@ -196,11 +212,11 @@ w_eb <- function(S, kappa=Inf, alpha=0.05) {
 #'
 #' }
 #' @examples
-#' ebci(theta25 ~ stayer25, cz, se25, pop/pop, tstat=TRUE)
-#' ebci(theta25 ~ 0, cz, se25, pop/pop, tstat=TRUE)
+#' ebci(theta25 ~ stayer25, cz, se25, 1/se25^2, tstat=FALSE, cores=1)
 #' @export
-ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
-                     tstat=FALSE, cores=max(parallel::detectCores()-1L, 1L)) {
+ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL, wopt=TRUE,
+                 fs_correction="PMT", tstat=FALSE,
+                 cores=max(parallel::detectCores()-1L, 1L)) {
     ## Construct model frame
     mf <- match.call(expand.dots = FALSE)
     m <- match(c("formula", "data", "se", "weights"), names(mf), 0L)
@@ -216,31 +232,54 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
         wgt <- rep(1L, length(Y))
     se <- mf$"(se)"
     X <- stats::model.matrix(stats::terms(formula, data = data), mf)
+    za <- stats::qnorm(1-alpha/2)
 
     ## Compute delta, and moments
     Yt <- if(tstat) Y/se else Y
     set <- if (tstat) 1L else se
     r1 <- stats::lm.wfit(X, Yt, wgt)
     mu1 <- unname(r1$fitted.values)
-    ## delta <- r1$coefficients[!is.na(r1$coefficients)]
     delta <- r1$coefficients
-    mu2 <- stats::weighted.mean((Yt-mu1)^2-set^2, wgt)
-    if (mu2 < 0) {
-            warning("mu2 estimate smaller than 0, setting it to 1e-4/max(se)")
-            mu2 <- 1e-4/max(se)
+    w2 <- (Yt-mu1)^2 - set^2
+    w4 <- (Yt-mu1)^4 - 6*set^2*(Yt-mu1)^2 + 3*set^4
+
+    weighted.V <- function(Z, wgt)
+        sum(wgt^2*(stats::weighted.mean(Z, wgt)))/(sum(wgt)^2-sum(wgt^2))
+    ## mean of truncated normal
+    tmean <- function(m, V)  m + sqrt(V)*stats::dnorm(m/sqrt(V))/
+                                 stats::pnorm(m/sqrt(V))
+
+    tmu2 <- stats::weighted.mean(w2, wgt)
+    mu2 <- if (fs_correction=="none") {
+               max(tmu2, 0)
+           } else if (fs_correction=="PMT") {
+               max(tmu2, 2*mean(wgt^2*set^4)/(mean(wgt*set^2)*sum(wgt)))
+           } else if (fs_correction=="FPLIB") {
+               tmean(tmu2, weighted.V(w2, wgt))
+           }
+    if (mu2 == 0) {
+        warning("mu2 estimate is 0")
+        df <- data.frame(w_eb=se*0, w_opt=se*0, ncov_pa=se*NA, len_eb=se*NA,
+                         len_op=se*NA, len_pa=se*NA, len_us=za*se, th_us=Y,
+                         th_eb=Yt-mu1, th_op=Yt-mu1, se=se)
+        return(list(sqrt_mu2=sqrt(mu2), kappa=kappa, delta=delta, df=df))
     }
 
+    tkappa <- stats::weighted.mean(w4, wgt) / tmu2^2
     if (is.null(kappa)) {
         ## Formula without assuming epsilon_i and sigma_i are uncorrelated,
         ## alternative is weighted.mean((Yt-mu1)^4 - 6*set^2*mu2 - 3*set^4, wgt)
-        kappa <- stats::weighted.mean((Yt-mu1)^4 - 6*set^2*(Yt-mu1)^2 +
-                                      3*set^4, wgt) / mu2^2
-        if (kappa < 1) {
-            message("Kurtosis estimate is smaller than 1, setting it to Inf")
-            kappa <- Inf
-        }
+        kappa <-
+            if (fs_correction=="none") {
+                max(tkappa, 1)
+            } else if (fs_correction=="PMT") {
+                max(tkappa, 1 + 32*mean(wgt^2*set^8)/
+                                    (mu2^2*sum(wgt)*mean(wgt*set^4)))
+            } else if (fs_correction=="FPLIB") {
+                tmean((tkappa-1)*tmu2^2,
+                      weighted.V(w4-2*max(tmu2, 0)*w2, wgt))/mu2^2+1
+            }
     }
-    za <- stats::qnorm(1-alpha/2)
     if (tstat) {
         op <- w_opt(mu2, kappa, alpha)
         eb <- w_eb(mu2, kappa, alpha)
@@ -250,10 +289,15 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
         ncov_pa <- rho(1/eb$w-1, kappa, za/sqrt(eb$w),
                        check=TRUE)$alpha
     } else {
-        ## Optimal shrinkage for each individual
+        ## EB shrinkage
+        eb <- vapply(se, function(se)
+            unlist(w_eb(mu2/se^2, kappa, alpha)), numeric(3))
+        eb <- as.data.frame(t(eb))
+        th_eb <- mu1+eb$w*(Yt-mu1)
 
+        ## Optimal shrinkage.
         ## Pre-compute cva for this kurtosis
-        if (length(se) > 30) {
+        if (length(se) > 30 & wopt) {
             mmin <- w_opt(mu2/min(se)^2, kappa, alpha=alpha)$m2
             mmax <- w_opt(mu2/max(se)^2, kappa, alpha=alpha)$m2
             df <- data.frame(m2=seq(mmin, mmax, length.out=501)^2)
@@ -267,18 +311,16 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL,
         } else {
             df <- NULL
         }
+        if (wopt) {
+            op <- vapply(se, function(se)
+                unlist(w_opt(mu2/se^2, kappa, cv_tbl=df,
+                             alpha=alpha)), numeric(3))
+            op <- as.data.frame(t(op))
+            th_op <- mu1+op$w*(Yt-mu1)
+        } else {
+            op <- th_op <- eb*NA
+        }
 
-        op <- vapply(se, function(se)
-            unlist(w_opt(mu2/se^2, kappa, cv_tbl=df,
-                         alpha=alpha)), numeric(3))
-        op <- as.data.frame(t(op))
-        ## EB shrinkage
-        eb <- vapply(se, function(se)
-            unlist(w_eb(mu2/se^2, kappa, alpha)), numeric(3))
-        eb <- as.data.frame(t(eb))
-
-        th_eb <- mu1+eb$w*(Yt-mu1)
-        th_op <- mu1+op$w*(Yt-mu1)
         par_cov <- function(se)
             rho(se^2/mu2, kappa,
                  za*sqrt(1+se^2/mu2), check=TRUE)$alpha
