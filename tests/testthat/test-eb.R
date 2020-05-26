@@ -78,7 +78,18 @@ test_that("fs corrections", {
     r2 <- ebci(formula=theta25~stayer25, data=df, se=se25,
               alpha=0.1, wopt=FALSE, fs_correction="PMT")
     expect_equal(r2$sqrt_mu2, 0.0247533358)
-    expect_equal(r2$kappa, 1719.44225761)
+    expect_equal(r2$kappa, 475.964641182)
     ## TODO: FS shouldn't mater if n large
+    ## set.seed(42)
+    ## th <- rnorm(500)
+    ## se <- sqrt((1:500)/1000)
+    ## Y <- th + rnorm(500)*se
+    ## rt <- ebci(formula=Y~1, se=se, weights=1/se^2, wopt=FALSE)
+    ## rn <- ebci(formula=Y~1, se=se, weights=1/se^2, wopt=FALSE,
+    ##            fs_correction = "none")
+    ## rb <- ebci(formula=Y~1, se=se, weights=1/se^2, wopt=FALSE,
+    ##            fs_correction = "FPLIB")
+    ## expect_identical(c(rt$kappa, rt$sqrt_mu2), c(rn$kappa, rn$sqrt_mu2))
+
 
 })

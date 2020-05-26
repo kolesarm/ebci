@@ -231,7 +231,7 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL, wopt=TRUE,
     if (is.null(wgt))
         wgt <- rep(1L, length(Y))
     se <- mf$"(se)"
-    X <- stats::model.matrix(stats::terms(formula, data = data), mf)
+    X <- stats::model.matrix(attr(mf, "terms"), mf)
     za <- stats::qnorm(1-alpha/2)
 
     ## Compute delta, and moments
@@ -249,13 +249,13 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL, wopt=TRUE,
     tmean <- function(m, V)  m + sqrt(V)*stats::dnorm(m/sqrt(V))/
                                  stats::pnorm(m/sqrt(V))
 
-    tmu2 <- stats::weighted.mean(w2, wgt)
+    ## \tilde{mu}_2, \tilde{mu}_4)
+    tmu <- c(stats::weighted.mean(w2, wgt), stats::weighted.mean(w4, wgt))
     mu2 <- switch(fs_correction,
-                  "none"=max(tmu2, 0),
-                  "PMT"=max(tmu2, 2*mean(wgt^2*set^4)/
+                  "none"=max(tmu[1], 0),
+                  "PMT"=max(tmu[1], 2*mean(wgt^2*set^4)/
                                   (mean(wgt*set^2)*sum(wgt))),
-                  "FPLIB"=tmean(tmu2, wgtV(w2, wgt)))
-
+                  "FPLIB"=tmean(tmu[1], wgtV(w2, wgt)))
     if (mu2 == 0) {
         warning("mu2 estimate is 0")
         df <- data.frame(w_eb=se*0, w_opt=se*0, ncov_pa=se*NA, len_eb=se*NA,
@@ -263,17 +263,13 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL, wopt=TRUE,
                          th_eb=Yt-mu1, th_op=Yt-mu1, se=se)
         return(list(sqrt_mu2=sqrt(mu2), kappa=kappa, delta=delta, df=df))
     }
-
-    tkappa <- stats::weighted.mean(w4, wgt) / tmu2^2
     if (is.null(kappa)) {
-        ## Formula without assuming epsilon_i and sigma_i are uncorrelated,
-        ## alternative is weighted.mean((Yt-mu1)^4 - 6*set^2*mu2 - 3*set^4, wgt)
         kappa <- switch(fs_correction,
-                  "none"=max(tkappa, 1),
-                  "PMT"=max(tkappa, 1 + 32*mean(wgt^2*set^8)/
+                  "none"=max(tmu[2]/mu2^2, 1),
+                  "PMT"=max(tmu[2]/mu2^2, 1 + 32*mean(wgt^2*set^8)/
                                     (mu2^2*sum(wgt)*mean(wgt*set^4))),
-                  "FPLIB"= tmean((tkappa-1)*tmu2^2,
-                                 wgtV(w4-2*max(tmu2, 0)*w2, wgt))/mu2^2+1)
+                  "FPLIB"= 1+tmean(tmu[2]-tmu[1]^2,
+                                 wgtV(w4-2*mu2*w2, wgt))/mu2^2)
     }
 
     if (tstat) {
