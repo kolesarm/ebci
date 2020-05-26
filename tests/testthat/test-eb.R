@@ -58,3 +58,27 @@ test_that("ebci function problems", {
     expect_warning(r <- ebci(formula=theta25~stayer25, data=df, kappa=Inf,
                              se=se25, alpha=0.1, cores=1, fs_correction="none"))
 })
+
+test_that("Zero bias estimate", {
+    expect_identical(cva(m2=Inf, kappa=1)$cv, NA)
+    expect_warning(r <- w_opt(S=0, kappa=3))
+    expect_true(is.na(r$length))
+    expect_true(is.na(w_eb(S=0, kappa=1)$length))
+
+})
+
+test_that("fs corrections", {
+    df <- cz[sort(cz$pop, index.return=TRUE, decreasing=TRUE)$ix[1:40], ]
+    r <- ebci(formula=theta25~stayer25, data=df, se=se25,
+              alpha=0.1, fs_correction="FPLIB", cores=1)
+    expect_equal(c(r$sqrt_mu2, r$kappa), c(1.628777253e-02, 1.7194418e+03))
+    expect_equal(as.vector(summary(r$df$len_op)),
+                 c(0.028318697, 0.031441853, 0.032593318, 0.032299735,
+                   0.033578645, 0.034253273))
+    r2 <- ebci(formula=theta25~stayer25, data=df, se=se25,
+              alpha=0.1, wopt=FALSE, fs_correction="PMT")
+    expect_equal(r2$sqrt_mu2, 0.0247533358)
+    expect_equal(r2$kappa, 1719.44225761)
+    ## TODO: FS shouldn't mater if n large
+
+})

@@ -63,7 +63,7 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
     ci_length <- function(w) cv((1/w-1)^2*S)*w
     if (S > tol) {
         r <- stats::optimize(ci_length, c(1/(sqrt(maxbias/S)+1),
-                                          1/(sqrt(minbias/max(S, tol))+1)), tol=tol)
+                                          1/(sqrt(minbias/S)+1)), tol=tol)
         m2 <- (1/r$minimum-1)^2*S
     } else {
         r <- list(minimum=0, objective=NA)
@@ -243,20 +243,19 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL, wopt=TRUE,
     w2 <- (Yt-mu1)^2 - set^2
     w4 <- (Yt-mu1)^4 - 6*set^2*(Yt-mu1)^2 + 3*set^4
 
-    weighted.V <- function(Z, wgt)
-        sum(wgt^2*(stats::weighted.mean(Z, wgt)))/(sum(wgt)^2-sum(wgt^2))
+    wgtV <- function(Z, wgt)
+        sum(wgt^2*(Z^2-stats::weighted.mean(Z, wgt))^2)/(sum(wgt)^2-sum(wgt^2))
     ## mean of truncated normal
     tmean <- function(m, V)  m + sqrt(V)*stats::dnorm(m/sqrt(V))/
                                  stats::pnorm(m/sqrt(V))
 
     tmu2 <- stats::weighted.mean(w2, wgt)
-    mu2 <- if (fs_correction=="none") {
-               max(tmu2, 0)
-           } else if (fs_correction=="PMT") {
-               max(tmu2, 2*mean(wgt^2*set^4)/(mean(wgt*set^2)*sum(wgt)))
-           } else if (fs_correction=="FPLIB") {
-               tmean(tmu2, weighted.V(w2, wgt))
-           }
+    mu2 <- switch(fs_correction,
+                  "none"=max(tmu2, 0),
+                  "PMT"=max(tmu2, 2*mean(wgt^2*set^4)/
+                                  (mean(wgt*set^2)*sum(wgt))),
+                  "FPLIB"=tmean(tmu2, wgtV(w2, wgt)))
+
     if (mu2 == 0) {
         warning("mu2 estimate is 0")
         df <- data.frame(w_eb=se*0, w_opt=se*0, ncov_pa=se*NA, len_eb=se*NA,
@@ -269,17 +268,14 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL, wopt=TRUE,
     if (is.null(kappa)) {
         ## Formula without assuming epsilon_i and sigma_i are uncorrelated,
         ## alternative is weighted.mean((Yt-mu1)^4 - 6*set^2*mu2 - 3*set^4, wgt)
-        kappa <-
-            if (fs_correction=="none") {
-                max(tkappa, 1)
-            } else if (fs_correction=="PMT") {
-                max(tkappa, 1 + 32*mean(wgt^2*set^8)/
-                                    (mu2^2*sum(wgt)*mean(wgt*set^4)))
-            } else if (fs_correction=="FPLIB") {
-                tmean((tkappa-1)*tmu2^2,
-                      weighted.V(w4-2*max(tmu2, 0)*w2, wgt))/mu2^2+1
-            }
+        kappa <- switch(fs_correction,
+                  "none"=max(tkappa, 1),
+                  "PMT"=max(tkappa, 1 + 32*mean(wgt^2*set^8)/
+                                    (mu2^2*sum(wgt)*mean(wgt*set^4))),
+                  "FPLIB"= tmean((tkappa-1)*tmu2^2,
+                                 wgtV(w4-2*max(tmu2, 0)*w2, wgt))/mu2^2+1)
     }
+
     if (tstat) {
         op <- w_opt(mu2, kappa, alpha)
         eb <- w_eb(mu2, kappa, alpha)

@@ -135,8 +135,8 @@ lam <- function(x0, chi) {
     } else if (-rr1$objective > opt0$lam - 10^3*tol) {
         return(opt0)
     } else {
-        warning(paste0("Optimum may be wrong in lam(x0=",
-                       x0, ", chi=", chi, ")"))
+        warning(paste0("Optimum may be wrong for lam(x0=", x0, ", chi=", chi,
+                       ")"))
         return(opt0)
     }
 }
