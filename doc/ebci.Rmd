@@ -26,7 +26,7 @@ knitr::opts_chunk$set(tidy = TRUE, collapse=TRUE, comment = "#>",
 ```
 
 The package `ebci` implements robust empirical Bayes confidence intervals
-(EBCIs) proposed by @akm20 for inference in a normal means model $Y_i\sim
+(EBCIs) proposed by @akp20 for inference in a normal means model $Y_i\sim
 N(\theta_i, \sigma^2_i)$, $i=1, \dotsc, n$.
 
 # Setup
@@ -62,7 +62,7 @@ assumption takes the form
 X_i'\delta+w_i(Y_i-X_i'\delta) \pm cva_{\alpha}(m_2, \infty) w_i\sigma_i,
 \,\, m_2=(1-1/w_i)^2\mu_2/\sigma^2_i,
 \end{equation}
-where the critical value $cva_{\alpha}$ is derived in @akm20. Here $m_2$ is the
+where the critical value $cva_{\alpha}$ is derived in @akp20. Here $m_2$ is the
 second moment of the bias-standard deviation ratio $m_2=b_i/(w_i\sigma_i)$,
 which we refer to as the normalized bias. This critical value imposes a
 constraint (\ref{mu2-independence}) on the second moment of $\theta_i$, but no
@@ -96,29 +96,34 @@ cva(m2=4, kappa=3, alpha=0.05)$cv
 # Example
 
 Here we illustrate the use of the package using a dataset from @ChHe18ii (CH
-hereafter). The dataset is included in the package as the list `cz`. Run
-`?cz` for a full description of the dataset.
+hereafter). The dataset is included in the package as the list `cz`. Run `?cz`
+for a full description of the dataset. As in @ChHe18ii, we use precision weights
+proportional to the inverse of the squared standard error to compute
+$(\delta,\mu_2,\kappa)$.
+
 
 ```{r}
-## For illustration, only use 20 largest CZ
-df <- cz[sort(cz$pop, index.return=TRUE, decreasing=TRUE)$ix[1:20], ]
-
 ## As Y_i, use fixed effect estimate theta25 of causal effect of neighborhood for children with parents at the 25th percentile of income distribution. The standard error for this estimate is se25. As predictors use average outcome for permanent residents (stayers), stayer25. Let us use 90% CIs.
-r <- ebci(formula=theta25~stayer25, data=df, se=se25, alpha=0.1, kappa=Inf)
+r <- ebci(formula=theta25~stayer25, data=cz, se=se25, weights=1/se25^2,
+          alpha=0.1, wopt=FALSE)
 ```
 
 For shrinkage toward the grand mean, or toward zero, use the specification
-`theta25 ~ 1`, or `theta25 ~ 0` in the `formula` argument of `ebci`
+`theta25 ~ 1`, or `theta25 ~ 0` in the `formula` argument of `ebci`.
 
-The return value contains:
+The return value contains (see `?ebci` for full description)
 
 1. The least squares estimate of $\delta$:
    ```{r}
    r$delta
    ```
-2. Estimates of $\sqrt{\mu_2}$ and $\kappa$, obtained using method of moments:
+2. Estimates of $\mu_2$ and $\kappa$. The estimate used for EBCI calculations
+   (`estimate`) is obtained by applying a finite-sample correction to an initial
+   method of moments estimate (`uncorrected_estimate`). This correction ensures
+   that we don't shrink all the way to zero (or past zero) if the
+   method-of-moments estimate of $\mu_2$ is negative (see @akp20 for details):
    ```{r}
-   c(r$sqrt_mu2, r$kappa)
+   c(r$mu2, r$kappa)
    ```
 3. A data frame with columns:
    ```{r}
@@ -134,17 +139,18 @@ The columns of the data frame refer to:
   the upper endpoint by `th_eb+len_eb`. For a given observation, this can be
   also computed directly using the `cva` function:
   ```{r}
-  cva(m2=((1-1/r$df$w_eb[1])*r$sqrt_mu2/r$df$se[1])^2, Inf, alpha=0.1)$cv*
+  cva(m2=((1-1/r$df$w_eb[1])/r$df$se[1])^2*r$mu2[1], r$kappa[1], alpha=0.1)$cv*
   r$df$w_eb[1]*r$df$se[1]
   r$df$len_eb[1]
   ```
 - `len_pa` Half-length $z_{1-\alpha/2}\sqrt{w_i}\sigma_i$ of the parametric EBCI.
 - `w_opt` Shrinkage factor that optimizes the length of the resulting confidence
   interval, that is, the value of $w_i$ that minimizes (\ref{robust-ebci}) over
-  $w_i$
+  $w_i$ (missing here since we specified `wopt=FALSE`)
 - `th_op` Estimator based on the length-optimal shrinkage factor `w_opt`
+  (missing here since we specified `wopt=FALSE`)
 - `len_op` Half-length $cva_{\alpha}(m_2, \kappa)w_i\sigma_i$ of the
-  length-optimal EBCI.
+  length-optimal EBCI (missing here since we specified `wopt=FALSE`).
 - `th_us` The unshrunk estimate $Y_i$, as specified in the `formula` argument of
   the function `ebci`.
 - `len_us` Half-length $z_{1-\alpha/2}\sigma_i$ of the CI based on the unshrunk
@@ -153,24 +159,25 @@ The columns of the data frame refer to:
   `ebci` function.
 - `ncov_pa` Maximal non-coverage of the parametric EBCI.
 
-Using the data frame, we can give a table summarizing the results:
+Using the data frame, we can give a table summarizing the results. Let us show the results for the CZ in California:
 ```{r}
-knitr::kable(data.frame(name=paste0(df$czname, ", ", df$state), estimate=r$df$th_eb,
-lower_ci=r$df$th_eb-r$df$len_eb, upper_ci=r$df$th_eb+r$df$len_eb), digits=3)
+df <- (cbind(cz[!is.na(cz$se25), ], r$df))
+df <- df[df$state=="CA", ]
+
+knitr::kable(data.frame(cz=df$czname, unshrunk_estimate=df$theta25,
+             estimate=df$th_eb,
+             lower_ci=df$th_eb-df$len_eb, upper_ci=df$th_eb+df$len_eb), digits=3)
 ```
 
-An analogous table, but constructed using length-optimal shrinkage:
+Using shrinkage tightens the robust EBCIs relative to the unshrunk CI by a factor of
 ```{r}
-knitr::kable(data.frame(name=paste0(df$czname, ", ", df$state), estimate=r$df$th_op,
-lower_ci=r$df$th_op-r$df$len_op, upper_ci=r$df$th_op+r$df$len_op), digits=3)
+mean(r$df$len_us)/mean(r$df$len_eb)
 ```
+on average.
 
-Using length-optimal shrinkage tightens the robust EBCIs by about 6 percentage points on average
-```{r}
-mean(r$df$len_op)/mean(r$df$len_eb)
-```
-On the other hand, using the parametric EBCI yields CIs that mildly violate the
-90% coverage requirement:
+On the other hand, using the parametric EBCI yields CIs that violate the
+90% coverage requirement, the worst-case coverage for the estimated value of
+$(\mu_{2},\kappa)$ is given by
 ```{r}
 mean(r$df$ncov_pa)
 ```

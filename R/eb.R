@@ -2,7 +2,7 @@
 #'
 #' Compute linear shrinkage factor \eqn{w_{opt}}{w_opt} to minimize the length
 #' of the resulting Empirical Bayes confidence interval (EBCI).
-#' @param S Signal-to-noise ratio \eqn{\mu_{2}/\sigma}{mu_2/sigma}, where
+#' @param S Signal-to-noise ratio \eqn{\mu_{2}/\sigma^2}{mu_2/sigma^2}, where
 #'     \eqn{\mu_{2}}{mu_2} is the second moment of
 #'     \eqn{\theta-X'\delta}{theta-X*delta}, and \eqn{\sigma^2}{sigma^2} is the
 #'     variance of the preliminary estimator.
@@ -161,10 +161,14 @@ w_eb <- function(S, kappa=Inf, alpha=0.05) {
 #' @return Returns a list with the following components: \describe{
 #'
 #' \item{\code{sqrt_mu2}}{Square root of the estimated second moment of
-#' \eqn{\theta-X'\delta}{theta-X*delta}, \eqn{\sqrt{\mu_2}}{mu_2^(1/2)}}
+#' \eqn{\theta-X'\delta}{theta-X*delta}, \eqn{\sqrt{\mu_2}}{mu_2^(1/2)}. Vector
+#' of length 2, the first element corresponds to the estimate after the
+#' finite-sample correction as specified by \code{fs_correction}, the second
+#' element is the uncorrected estimate.}
 #'
 #' \item{\code{kappa}}{Estimated kurtosis \eqn{\kappa}{kappa} of
-#' \eqn{\theta-X'\delta}{theta-X*delta}}
+#' \eqn{\theta-X'\delta}{theta-X*delta}. Vector of length 2 with the same
+#' structure as \code{sqrt_mu2}.}
 #'
 #' \item{\code{delta}}{Estimated regression coefficients \eqn{\delta}{delta}}
 #'
@@ -214,15 +218,14 @@ w_eb <- function(S, kappa=Inf, alpha=0.05) {
 #' @examples
 #' ebci(theta25 ~ stayer25, cz, se25, 1/se25^2, tstat=FALSE, cores=1)
 #' @export
-ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL, wopt=TRUE,
-                 fs_correction="PMT", tstat=FALSE,
+ebci <- function(formula, data, se, weights=NULL, alpha=0.1, kappa=NULL,
+                 wopt=FALSE, fs_correction="PMT", tstat=FALSE,
                  cores=max(parallel::detectCores()-1L, 1L)) {
     ## Construct model frame
     mf <- match.call(expand.dots = FALSE)
     m <- match(c("formula", "data", "se", "weights"), names(mf), 0L)
     mf <- mf[c(1L, m)]
-    formula <- stats::as.formula(formula)
-    mf$formula <- formula
+    mf$formula <- stats::as.formula(formula)
     mf[[1L]] <- quote(stats::model.frame)
     mf <- eval(mf, parent.frame())
     Y <- stats::model.response(mf, "numeric")
@@ -243,18 +246,18 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL, wopt=TRUE,
     w2 <- (Yt-mu1)^2 - set^2
     w4 <- (Yt-mu1)^4 - 6*set^2*(Yt-mu1)^2 + 3*set^4
 
+    ## Weighted sample variance and mean of truncated normal
     wgtV <- function(Z, wgt)
-        sum(wgt^2*(Z^2-stats::weighted.mean(Z, wgt))^2)/(sum(wgt)^2-sum(wgt^2))
-    ## mean of truncated normal
+        sum(wgt^2*(Z^2-stats::weighted.mean(Z, wgt)^2))/(sum(wgt)^2-sum(wgt^2))
     tmean <- function(m, V)  m + sqrt(V)*stats::dnorm(m/sqrt(V))/
                                  stats::pnorm(m/sqrt(V))
-
     ## \tilde{mu}_2, \tilde{mu}_4)
     tmu <- c(stats::weighted.mean(w2, wgt), stats::weighted.mean(w4, wgt))
+    pmt_trim <- c(2 *mean(wgt^2*set^4) / (sum(wgt)*mean(wgt*set^2)),
+                  32*mean(wgt^2*set^8) / (sum(wgt)*mean(wgt*set^4)))
     mu2 <- switch(fs_correction,
                   "none"=max(tmu[1], 0),
-                  "PMT"=max(tmu[1], 2*mean(wgt^2*set^4)/
-                                  (mean(wgt*set^2)*sum(wgt))),
+                  "PMT"=max(tmu[1], pmt_trim[1]),
                   "FPLIB"=tmean(tmu[1], wgtV(w2, wgt)))
     if (mu2 == 0) {
         warning("mu2 estimate is 0")
@@ -266,29 +269,25 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL, wopt=TRUE,
     if (is.null(kappa)) {
         kappa <- switch(fs_correction,
                   "none"=max(tmu[2]/mu2^2, 1),
-                  "PMT"=max(tmu[2]/mu2^2, 1 + 32*mean(wgt^2*set^8)/
-                                    (mu2^2*sum(wgt)*mean(wgt*set^4))),
+                  "PMT"=max(tmu[2]/mu2^2, 1 + pmt_trim[2]/mu2^2),
                   "FPLIB"= 1+tmean(tmu[2]-tmu[1]^2,
                                  wgtV(w4-2*mu2*w2, wgt))/mu2^2)
     }
 
     if (tstat) {
-        op <- w_opt(mu2, kappa, alpha)
         eb <- w_eb(mu2, kappa, alpha)
-
         th_eb <- se*(mu1+eb$w*(Yt-mu1))
+        op <- w_opt(mu2, kappa, alpha)
         th_op <- se*(mu1+op$w*(Yt-mu1))
-        ncov_pa <- rho(1/eb$w-1, kappa, za/sqrt(eb$w),
-                       check=TRUE)$alpha
+        ncov_pa <- rho(1/eb$w-1, kappa, za/sqrt(eb$w), check=TRUE)$alpha
     } else {
         ## EB shrinkage
-        eb <- vapply(se, function(se)
-            unlist(w_eb(mu2/se^2, kappa, alpha)), numeric(3))
+        eb <- vapply(se, function(se) unlist(w_eb(mu2/se^2, kappa, alpha)),
+                     numeric(3))
         eb <- as.data.frame(t(eb))
         th_eb <- mu1+eb$w*(Yt-mu1)
 
-        ## Optimal shrinkage.
-        ## Pre-compute cva for this kurtosis
+        ## Optimal shrinkage. First pre-compute cva for this kurtosis
         if (length(se) > 30 & wopt) {
             mmin <- w_opt(mu2/min(se)^2, kappa, alpha=alpha)$m2
             mmax <- w_opt(mu2/max(se)^2, kappa, alpha=alpha)$m2
@@ -310,24 +309,19 @@ ebci <- function(formula, data, se, weights, alpha=0.1, kappa=NULL, wopt=TRUE,
             op <- as.data.frame(t(op))
             th_op <- mu1+op$w*(Yt-mu1)
         } else {
-            op <- th_op <- eb*NA
+            op <- eb*NA
+            th_op <- th_eb*NA
         }
 
-        par_cov <- function(se)
-            rho(se^2/mu2, kappa,
-                 za*sqrt(1+se^2/mu2), check=TRUE)$alpha
+        par_cov <- function(se) rho(se^2/mu2, kappa,
+                                    za*sqrt(1+se^2/mu2), check=TRUE)$alpha
         ncov_pa <- vapply(se, par_cov, numeric(1))
     }
-    df <- data.frame(w_eb=eb$w,
-                     w_opt=op$w,
-                     ncov_pa=ncov_pa,
-                     len_eb=eb$length*se,
-                     len_op=op$length*se,
-                     len_pa=sqrt(eb$w)*za*se,
-                     len_us=za*se,
-                     th_us=Y,
-                     th_eb=th_eb,
-                     th_op=th_op,
-                     se=se)
-    list(sqrt_mu2=sqrt(mu2), kappa=kappa, delta=delta, df=df)
+    df <- data.frame(w_eb=eb$w, w_opt=op$w, ncov_pa=ncov_pa,
+                     len_eb=eb$length*se, len_op=op$length*se,
+                     len_pa=sqrt(eb$w)*za*se, len_us=za*se, th_us=Y,
+                     th_eb=th_eb, th_op=th_op, se=se)
+    list(mu2=c("estimate"=mu2, "uncorrected_estimate"=tmu[1]),
+         kappa=c("estimate"=kappa, "uncorrected_estimate"=tmu[2]/tmu[1]^2),
+         delta=delta, df=df)
 }

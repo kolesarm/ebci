@@ -14,36 +14,34 @@ cva(m2=4, kappa=Inf, alpha=0.05)$cv
 cva(m2=4, kappa=3, alpha=0.05)$cv
 
 ## -----------------------------------------------------------------------------
-## For illustration, only use 20 largest CZ
-df <- cz[sort(cz$pop, index.return=TRUE, decreasing=TRUE)$ix[1:20], ]
-
 ## As Y_i, use fixed effect estimate theta25 of causal effect of neighborhood for children with parents at the 25th percentile of income distribution. The standard error for this estimate is se25. As predictors use average outcome for permanent residents (stayers), stayer25. Let us use 90% CIs.
-r <- ebci(formula=theta25~stayer25, data=df, se=se25, alpha=0.1, kappa=Inf)
+r <- ebci(formula=theta25~stayer25, data=cz, se=se25, weights=1/se25^2,
+          alpha=0.1, wopt=FALSE)
 
 ## -----------------------------------------------------------------------------
 r$delta
 
 ## -----------------------------------------------------------------------------
-c(r$sqrt_mu2, r$kappa)
+c(r$mu2, r$kappa)
 
 ## -----------------------------------------------------------------------------
 names(r$df)
 
 ## -----------------------------------------------------------------------------
-cva(m2=((1-1/r$df$w_eb[1])*r$sqrt_mu2/r$df$se[1])^2, Inf, alpha=0.1)$cv*
+cva(m2=((1-1/r$df$w_eb[1])/r$df$se[1])^2*r$mu2[1], r$kappa[1], alpha=0.1)$cv*
 r$df$w_eb[1]*r$df$se[1]
 r$df$len_eb[1]
 
 ## -----------------------------------------------------------------------------
-knitr::kable(data.frame(name=paste0(df$czname, ", ", df$state), estimate=r$df$th_eb,
-lower_ci=r$df$th_eb-r$df$len_eb, upper_ci=r$df$th_eb+r$df$len_eb), digits=3)
+df <- (cbind(cz[!is.na(cz$se25), ], r$df))
+df <- df[df$state=="CA", ]
+
+knitr::kable(data.frame(cz=df$czname, unshrunk_estimate=df$theta25,
+             estimate=df$th_eb,
+             lower_ci=df$th_eb-df$len_eb, upper_ci=df$th_eb+df$len_eb), digits=3)
 
 ## -----------------------------------------------------------------------------
-knitr::kable(data.frame(name=paste0(df$czname, ", ", df$state), estimate=r$df$th_op,
-lower_ci=r$df$th_op-r$df$len_op, upper_ci=r$df$th_op+r$df$len_op), digits=3)
-
-## -----------------------------------------------------------------------------
-mean(r$df$len_op)/mean(r$df$len_eb)
+mean(r$df$len_us)/mean(r$df$len_eb)
 
 ## -----------------------------------------------------------------------------
 mean(r$df$ncov_pa)

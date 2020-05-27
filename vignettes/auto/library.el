@@ -2,7 +2,7 @@
  "library"
  (lambda ()
    (LaTeX-add-bibitems
-    "akm20"
+    "akp20"
     "morris83"
     "ChHe18ii"))
  :bibtex)

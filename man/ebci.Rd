@@ -8,10 +8,10 @@ ebci(
   formula,
   data,
   se,
-  weights,
+  weights = NULL,
   alpha = 0.1,
   kappa = NULL,
-  wopt = TRUE,
+  wopt = FALSE,
   fs_correction = "PMT",
   tstat = FALSE,
   cores = max(parallel::detectCores() - 1L, 1L)
@@ -68,10 +68,14 @@ observations to speed up the calculations.}
 Returns a list with the following components: \describe{
 
 \item{\code{sqrt_mu2}}{Square root of the estimated second moment of
-\eqn{\theta-X'\delta}{theta-X*delta}, \eqn{\sqrt{\mu_2}}{mu_2^(1/2)}}
+\eqn{\theta-X'\delta}{theta-X*delta}, \eqn{\sqrt{\mu_2}}{mu_2^(1/2)}. Vector
+of length 2, the first element corresponds to the estimate after the
+finite-sample correction as specified by \code{fs_correction}, the second
+element is the uncorrected estimate.}
 
 \item{\code{kappa}}{Estimated kurtosis \eqn{\kappa}{kappa} of
-\eqn{\theta-X'\delta}{theta-X*delta}}
+\eqn{\theta-X'\delta}{theta-X*delta}. Vector of length 2 with the same
+structure as \code{sqrt_mu2}.}
 
 \item{\code{delta}}{Estimated regression coefficients \eqn{\delta}{delta}}
 

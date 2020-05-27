@@ -7,7 +7,7 @@
 w_opt(S, kappa, alpha = 0.05, cv_tbl = NULL)
 }
 \arguments{
-\item{S}{Signal-to-noise ratio \eqn{\mu_{2}/\sigma}{mu_2/sigma}, where
+\item{S}{Signal-to-noise ratio \eqn{\mu_{2}/\sigma^2}{mu_2/sigma^2}, where
 \eqn{\mu_{2}}{mu_2} is the second moment of
 \eqn{\theta-X'\delta}{theta-X*delta}, and \eqn{\sigma^2}{sigma^2} is the
 variance of the preliminary estimator.}
