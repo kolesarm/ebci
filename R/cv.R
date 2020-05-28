@@ -115,19 +115,18 @@ lam <- function(x0, chi) {
         return(opt0)
     } else if (all(diff(der>=0)<=0) & der[length(der)]<=0) {
         ## Function first increasing, then decreasing
-        start <- xs[which.min(der>=0)-1]
-        end <- xs[which.min(der>=0)]
-    } else if (max(abs(der)) < 1e-5) {
+        idx <- max(which.min(der>=0), 2) # in case all derivatives negative
+        ival <- xs[(idx-1):idx]
+    } else if (min(abs(der)) < 1e-6) {
         ## Determine interval based on value of delta, numerical accuracy of
         ## delta1 only 7e-6
-        start <- xs[max(which.max(val)-1, 1)]
-        end <- xs[min(which.max(val)+1, length(val))]
+        ival <- c(xs[max(which.max(val)-1, 1)],
+                  xs[min(which.max(val)+1, length(val))])
     } else {
         stop(paste0("There are multiple optima in the function delta(x, x0=",
                     x0, ", chi=", chi, ")"))
     }
-    rr1 <- stats::optimize(function(x) -delta(x, x0, chi),
-                           c(start, end), tol=tol)
+    rr1 <- stats::optimize(function(x) -delta(x, x0, chi), ival, tol=tol)
     ## Finally, check optimum at 0 not higher, we could miss it due to numerical
     ## accuracy issues
     if (-rr1$objective > opt0$lam) {

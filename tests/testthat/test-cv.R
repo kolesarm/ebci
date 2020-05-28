@@ -33,6 +33,11 @@ test_that("Numerical issues with rt0", {
                      chi=424434295.36931574345)$lam/4.851805e-26, 1L)
     ## This one is decreasing, max should be at 0
     expect_equal(lam(x0=12577.803781, chi=109.857326)$x0, 0L)
+    ## First derivative evaluates to negative, but should probably be possitive;
+    ## this shouldn't throw us off
+    expect_equal(lam(x0 = 0.000759676644983789, chi = 2.85710241617874)$lam,
+                 0.00827903)
+
 
 })
 

@@ -157,7 +157,8 @@ The columns of the data frame refer to:
   estimate
 - `se` The standard error $\sigma_i$, as specified by the argument `se` of the
   `ebci` function.
-- `ncov_pa` Maximal non-coverage of the parametric EBCI.
+- `ncov_pa` average (across observations) maximal non-coverage of the parametric
+  EBCI.
 
 Using the data frame, we can give a table summarizing the results. Let us show the results for the CZ in California:
 ```{r}
