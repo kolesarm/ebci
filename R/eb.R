@@ -258,7 +258,8 @@ ebci <- function(formula, data, se, weights=NULL, alpha=0.1, kappa=NULL,
     mu2 <- switch(fs_correction,
                   "none"=max(tmu[1], 0),
                   "PMT"=max(tmu[1], pmt_trim[1]),
-                  "FPLIB"=tmean(tmu[1], wgtV(w2, wgt)))
+                  "FPLIB"=tmean(tmu[1], wgtV(w2, wgt)),
+                  stop("Unknown fs_correction method"))
     if (mu2 == 0) {
         warning("mu2 estimate is 0")
         df <- data.frame(w_eb=se*0, w_opt=se*0, ncov_pa=se*NA, len_eb=se*NA,

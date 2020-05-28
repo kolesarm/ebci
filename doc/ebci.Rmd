@@ -176,8 +176,8 @@ mean(r$df$len_us)/mean(r$df$len_eb)
 on average.
 
 On the other hand, using the parametric EBCI yields CIs that violate the
-90% coverage requirement, the worst-case coverage for the estimated value of
-$(\mu_{2},\kappa)$ is given by
+90% coverage requirement, the average maximal non-coverage probability at the
+estimated value of $(\mu_{2},\kappa)$ is given by
 ```{r}
 mean(r$df$ncov_pa)
 ```
