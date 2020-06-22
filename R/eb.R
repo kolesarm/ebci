@@ -38,9 +38,9 @@
 #'
 #' }
 #' @examples
-#' w_opt(1, 3)
+#' w_opt(4, 3)
 #' ## Use precomputed critical value table
-#' w_opt(1, 3, cv_tbl=cva_tbl[cva_tbl$kappa==3 & cva_tbl$alpha==0.05, ])
+#' w_opt(4, 3, cv_tbl=cva_tbl[cva_tbl$kappa==3 & cva_tbl$alpha==0.05, ])
 #' @export
 w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
     if (!is.null(cv_tbl)) {
@@ -105,10 +105,10 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
 #'
 #' }
 #' @examples
-#' w_opt(1, 3)
+#' w_eb(2, 3)
 #' ## No constraint on kurtosis yields doesn't affect shrinkage, but yields
 #' ## larger half-length
-#' w_opt(1, Inf)
+#' w_eb(2, Inf)
 #' @export
 w_eb <- function(S, kappa=Inf, alpha=0.05) {
     w <- S/(1+S)
@@ -216,7 +216,9 @@ w_eb <- function(S, kappa=Inf, alpha=0.05) {
 #'
 #' }
 #' @examples
-#' ebci(theta25 ~ stayer25, cz, se25, 1/se25^2, tstat=FALSE, cores=1)
+#' ## Using only commuting zones in California
+#' ebci(theta25 ~ stayer25, cz[cz$state=="NY", ],
+#'      se25, 1/se25^2, tstat=FALSE, cores=1)
 #' @export
 ebci <- function(formula, data, se, weights=NULL, alpha=0.1, kappa=NULL,
                  wopt=FALSE, fs_correction="PMT", tstat=FALSE,

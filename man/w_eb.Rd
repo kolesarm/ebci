@@ -37,10 +37,10 @@ normalized half-length of of the associated robust Empirical Bayes confidence
 interval (EBCI).
 }
 \examples{
-w_opt(1, 3)
+w_eb(2, 3)
 ## No constraint on kurtosis yields doesn't affect shrinkage, but yields
 ## larger half-length
-w_opt(1, Inf)
+w_eb(2, Inf)
 }
 \references{
 {

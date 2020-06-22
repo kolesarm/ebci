@@ -46,9 +46,9 @@ Compute linear shrinkage factor \eqn{w_{opt}}{w_opt} to minimize the length
 of the resulting Empirical Bayes confidence interval (EBCI).
 }
 \examples{
-w_opt(1, 3)
+w_opt(4, 3)
 ## Use precomputed critical value table
-w_opt(1, 3, cv_tbl=cva_tbl[cva_tbl$kappa==3 & cva_tbl$alpha==0.05, ])
+w_opt(4, 3, cv_tbl=cva_tbl[cva_tbl$kappa==3 & cva_tbl$alpha==0.05, ])
 }
 \references{
 {

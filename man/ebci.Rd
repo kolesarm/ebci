@@ -122,7 +122,9 @@ and associated robust empirical Bayes confidence intervals (EBCIs), as well
 as length-optimal robust EBCIs.
 }
 \examples{
-ebci(theta25 ~ stayer25, cz, se25, 1/se25^2, tstat=FALSE, cores=1)
+## Using only commuting zones in California
+ebci(theta25 ~ stayer25, cz[cz$state=="NY", ],
+     se25, 1/se25^2, tstat=FALSE, cores=1)
 }
 \references{
 {

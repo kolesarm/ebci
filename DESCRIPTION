@@ -1,5 +1,5 @@
 Package: ebci
-Title: Robust empirical Bayes confidence intervals
+Title: Robust Empirical Bayes Confidence Intervals
 Version: 0.0.0.9002
 Authors@R:
     c(person(given = "Michal",

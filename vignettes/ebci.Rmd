@@ -13,7 +13,7 @@ fontfamily: mathpazo
 bibliography: library.bib
 fontsize: 11pt
 vignette: >
-  %\VignetteIndexEntry{ShiftShareSE}
+  %\VignetteIndexEntry{ebci}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -49,11 +49,12 @@ We assume that $\mu_2$ doesn't depend on $\sigma_i$. @morris83 proposes to use t
 \end{equation*}
 
 The critical value $z_{1-\alpha/2}/\sqrt{w_i}$ is larger than the usual critical
-value $z_{1-\alpha/2}=$`qnorm(1-alpha/2)` if the estimator was unbiased conditional on
-$\theta_i$. This CI is justified if we strengthen the assumption
+value $z_{1-\alpha/2}=$`qnorm(1-alpha/2)` if the estimator was unbiased
+conditional on $\theta_i$. This CI is justified if we strengthen the assumption
 (\ref{mu2-independence}) by making the normality assumption $\theta_i\mid X_{i},
 \sigma_{i} \sim N(X_i'\delta, \mu_2)$: to account for the bias
-$b_i=(1-w)(\theta_i-X_i'\delta)$ of the estimator (more precisely $b_i$ is the bias conditional on $(X_i,\theta_i,\sigma_i)$), the parametric EBCI assumes that
+$b_i=(1-w)(\theta_i-X_i'\delta)$ of the estimator (more precisely $b_i$ is the
+bias conditional on $(X_i,\theta_i,\sigma_i)$), the parametric EBCI assumes that
 it is normally distributed.
 
 A *robust EBCI* that is only uses (\ref{mu2-independence}) and not the normality
