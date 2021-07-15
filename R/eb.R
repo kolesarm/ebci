@@ -177,10 +177,6 @@ moments <- function(eps, se, wgt, fs_correction="PMT") {
 #' @param wopt If \code{TRUE}, also compute length-optimal robust EBCIs. These
 #'     are robust EBCIs centered at length-optimal shrinkage factors
 #'     \code{\link{w_opt}}.
-#' @param cores Number of cores to use when computing length-optimal robust
-#'     EBCIs. By default, the computation of the length-optimal shrinkage
-#'     factors \code{\link{w_opt}} is parallelized if there are more than 30
-#'     observations to speed up the calculations.
 #' @return Returns a list with the following components: \describe{
 #'
 #' \item{\code{sqrt_mu2}}{Square root of the estimated second moment of
@@ -241,11 +237,10 @@ moments <- function(eps, se, wgt, fs_correction="PMT") {
 #' @examples
 #' ## Using only commuting zones in New York
 #' ebci(theta25 ~ stayer25, cz[cz$state=="NY", ],
-#'      se25, 1/se25^2, cores=1)
+#'      se25, 1/se25^2)
 #' @export
 ebci <- function(formula, data, se, weights=NULL, alpha=0.1, kappa=NULL,
-                 wopt=FALSE, fs_correction="PMT",
-                 cores=max(parallel::detectCores()-1L, 1L)) {
+                 wopt=FALSE, fs_correction="PMT") {
     ## Construct model frame
     mf <- match.call(expand.dots = FALSE)
     m <- match(c("formula", "data", "se", "weights"), names(mf), 0L)
@@ -294,11 +289,7 @@ ebci <- function(formula, data, se, weights=NULL, alpha=0.1, kappa=NULL,
                               mmax*1.05))
         cvj <- function(j)
             cva(df$m2[j], kappa=mus[2], alpha, check=TRUE)$cv
-        df$cv <- if (cores>1)
-                     unlist(parallel::mclapply(seq_len(nrow(df)), cvj,
-                                               mc.cores=cores))
-                 else
-                     vapply(seq_len(nrow(df)), cvj, numeric(1))
+        df$cv <- vapply(seq_len(nrow(df)), cvj, numeric(1))
     } else {
         df <- NULL
     }

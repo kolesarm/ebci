@@ -51,7 +51,7 @@ test_that("ebci function problems", {
     ## negative mu2 estimate
     df <- cz[sort(cz$pop, index.return=TRUE, decreasing=TRUE)$ix[1:100], ]
     expect_warning(r <- ebci(formula=theta25~stayer25, data=df, kappa=Inf,
-                             se=se25, alpha=0.1, cores=1, fs_correction="none"))
+                             se=se25, alpha=0.1, fs_correction="none"))
 })
 
 test_that("Zero bias estimate", {
@@ -65,7 +65,7 @@ test_that("Zero bias estimate", {
 test_that("fs corrections", {
     df <- cz[sort(cz$pop, index.return=TRUE, decreasing=TRUE)$ix[1:40], ]
     r <- ebci(formula=theta25~stayer25, data=df, se=se25,
-              alpha=0.1, fs_correction="FPLIB", cores=1, wopt=TRUE)
+              alpha=0.1, fs_correction="FPLIB", wopt=TRUE)
     r2 <- ebci(formula=theta25~stayer25, data=df, se=se25,
               alpha=0.1, wopt=FALSE, fs_correction="PMT")
     expect_equal(unname(c(sqrt(r$mu2[1]), r$kappa[1])),
@@ -94,7 +94,7 @@ test_that("fs corrections", {
     expect_identical(dim(rt$df), c(500L, 13L))
     expect_identical(dim(rb$df), c(500L, 13L))
     rtt <- ebci(formula=Y~1, se=se, weights=1/se^2, wopt=TRUE,
-               fs_correction = "FPLIB", cores=2)
+               fs_correction = "FPLIB")
     expect_identical(dim(rt$df), dim(rtt$df))
 })
 
@@ -123,9 +123,6 @@ test_that("Pre-computing critical values", {
              0.198405131349222, 0.235877391582392, 0.129194532604923,
              0.0592319350677268, 0.45161460229795))
     ## Should be no warning, previously we did get them
-    expect_silent(c2 <- ebci(y ~ 0, dfm, se, wopt=TRUE, alpha=0.05, kappa=Inf,
-                             cores=2))
+    expect_silent(c2 <- ebci(y ~ 0, dfm, se, wopt=TRUE, alpha=0.05, kappa=Inf))
     expect_equal(dim(c2$X), c(32L, 0L))
-
-
 })

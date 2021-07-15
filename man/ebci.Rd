@@ -12,8 +12,7 @@ ebci(
   alpha = 0.1,
   kappa = NULL,
   wopt = FALSE,
-  fs_correction = "PMT",
-  cores = max(parallel::detectCores() - 1L, 1L)
+  fs_correction = "PMT"
 )
 }
 \arguments{
@@ -54,11 +53,6 @@ If \code{"PMT"}, use posterior mean truncation, if \code{"FPLIB"} use
 limited information Bayesian approach with a flat prior, and if
 \code{"none"}, truncate the estimates at \code{0} for \eqn{\mu_2}{mu_2}
 and \code{1} for \eqn{\kappa}{kappa}.}
-
-\item{cores}{Number of cores to use when computing length-optimal robust
-EBCIs. By default, the computation of the length-optimal shrinkage
-factors \code{\link{w_opt}} is parallelized if there are more than 30
-observations to speed up the calculations.}
 }
 \value{
 Returns a list with the following components: \describe{
@@ -120,7 +114,7 @@ as length-optimal robust EBCIs.
 \examples{
 ## Using only commuting zones in New York
 ebci(theta25 ~ stayer25, cz[cz$state=="NY", ],
-     se25, 1/se25^2, cores=1)
+     se25, 1/se25^2)
 }
 \references{
 {

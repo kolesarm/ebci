@@ -28,7 +28,6 @@ Suggests:
     spelling,
     testthat (>= 2.1.0),
     lpSolve,
-    parallel,
     knitr,
     rmarkdown
 Language: en-US
