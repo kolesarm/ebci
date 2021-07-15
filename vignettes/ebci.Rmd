@@ -161,17 +161,20 @@ The columns of the data frame refer to:
 - `ncov_pa` average (across observations) maximal non-coverage of the parametric
   EBCI.
 
-Using the data frame, we can give a table summarizing the results. Let us show the results for the CZ in California:
+Using the data frame, we can give a table summarizing the results. Let us show
+the results for the CZ in California:
 ```{r}
 df <- (cbind(cz[!is.na(cz$se25), ], r$df))
 df <- df[df$state=="CA", ]
 
 knitr::kable(data.frame(cz=df$czname, unshrunk_estimate=df$theta25,
              estimate=df$th_eb,
-             lower_ci=df$th_eb-df$len_eb, upper_ci=df$th_eb+df$len_eb), digits=3)
+             lower_ci=df$th_eb-df$len_eb, upper_ci=df$th_eb+df$len_eb),
+             digits=3)
 ```
 
-Using shrinkage tightens the robust EBCIs relative to the unshrunk CI by a factor of
+Using shrinkage tightens the robust EBCIs relative to the unshrunk CI by a
+factor of
 ```{r}
 mean(r$df$len_us)/mean(r$df$len_eb)
 ```

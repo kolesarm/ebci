@@ -13,7 +13,6 @@ ebci(
   kappa = NULL,
   wopt = FALSE,
   fs_correction = "PMT",
-  tstat = FALSE,
   cores = max(parallel::detectCores() - 1L, 1L)
 )
 }
@@ -55,9 +54,6 @@ If \code{"PMT"}, use posterior mean truncation, if \code{"FPLIB"} use
 limited information Bayesian approach with a flat prior, and if
 \code{"none"}, truncate the estimates at \code{0} for \eqn{\mu_2}{mu_2}
 and \code{1} for \eqn{\kappa}{kappa}.}
-
-\item{tstat}{If \code{TRUE}, shrink the t-statistics \code{Y/se} rather than
-the preliminary estimates \code{Y}.}
 
 \item{cores}{Number of cores to use when computing length-optimal robust
 EBCIs. By default, the computation of the length-optimal shrinkage
@@ -122,9 +118,9 @@ and associated robust empirical Bayes confidence intervals (EBCIs), as well
 as length-optimal robust EBCIs.
 }
 \examples{
-## Using only commuting zones in California
+## Using only commuting zones in New York
 ebci(theta25 ~ stayer25, cz[cz$state=="NY", ],
-     se25, 1/se25^2, tstat=FALSE, cores=1)
+     se25, 1/se25^2, cores=1)
 }
 \references{
 {

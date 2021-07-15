@@ -16,7 +16,9 @@ Matlab version of this package.
 You can get the current development version from GitHub:
 
 ``` r
-install.packages("remotes") # if the remotes package is not installed
+if (!requireNamespace("remotes")) {
+  install.packages("remotes")
+}
 remotes::install_github("kolesarm/ebci")
 ```
 
