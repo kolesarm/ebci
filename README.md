@@ -1,4 +1,4 @@
-[![Travis build status](https://travis-ci.org/kolesarm/ebci.svg?branch=master)](https://travis-ci.org/kolesarm/ebci) [![Coverage status](https://codecov.io/gh/kolesarm/ebci/branch/master/graph/badge.svg)](https://codecov.io/github/kolesarm/ebci?branch=master)
+[![R-CMD-check](https://github.com/kolesarm/ebci/workflows/R-CMD-check/badge.svg)](https://github.com/kolesarm/ebci/actions) [![Coverage status](https://codecov.io/gh/kolesarm/ebci/branch/master/graph/badge.svg)](https://codecov.io/github/kolesarm/ebci?branch=master)
 
 # ebci
 
