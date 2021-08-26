@@ -250,10 +250,13 @@ CVb <- function(B, alpha=0.05) {
 #'
 #' }
 #' @examples
-#' ## Critical value without imposing a constraint on kurtosis
-#' cva(1, kappa=Inf)
-#' ## With a constraint
-#' cva(1, kappa=3)
+#' # Usual critical value
+#' cva(m2=0, kappa=Inf, alpha=0.05)
+#' # Larger critical value that takes bias into account. Only uses second moment
+#' # constraint on normalized bias.
+#' cva(m2=4, kappa=Inf, alpha=0.05)
+#' # Add a constraint on kurtosis. This tightens the critical value.
+#' cva(m2=4, kappa=3, alpha=0.05)
 #' @export
 cva <- function(m2, kappa=Inf, alpha=0.05, check=TRUE) {
     if (m2 == Inf) {

@@ -1,21 +1,21 @@
 ## #' Optimal shrinkage for Empirical Bayes confidence intervals
 ## #'
-## #' Compute linear shrinkage factor \eqn{w_{opt}}{w_opt} to minimize the length
+## #' Compute linear shrinkage factor \eqn{w_{opt}} to minimize the length
 ## #' of the resulting Empirical Bayes confidence interval (EBCI).
 ## #' @param S Signal-to-noise ratio \eqn{\mu_{2}/\sigma^2}{mu_2/sigma^2}, where
 ## #'     \eqn{\mu_{2}}{mu_2} is the second moment of
-## #'     \eqn{\theta-X'\delta}{theta-X*delta}, and \eqn{\sigma^2}{sigma^2} is the
+## #'     \eqn{\theta-X'\delta}{theta-X*delta}, and \sigma^2 is the
 ## #'     variance of the preliminary estimator.
 ## #' @param kappa Kurtosis of \eqn{\theta-X'\delta}{theta-X*delta}.
 ## #' @param alpha Determines confidence level, \eqn{1-\alpha}{1-alpha}.
 ## #' @param cv_tbl Optionally, supply a data frame of critical values.
-## #'     \code{cva(m2, kappa, alpha)}, for different values of \code{m2}, such as
-## #'     a subset of the data frame \code{\link{cva_tbl}}, that matches the
-## #'     supplied values of \code{alpha} and \code{kappa}. The data frame needs to
-## #'     contain two variables, \code{m2}, corresponding to the value of second
+## #'     \code{cva(m2, kappa, alpha)}, for different values of \code{m2}, such
+## #'     as a subset of the data frame \code{\link{cva_tbl}}, that matches the
+## #'     supplied values of \code{alpha} and \code{kappa}. The data frame needs
+## #'     to contain two variables, \code{m2}, corresponding to the value of 2nd
 ## #'     moment of the normalized bias, and \code{cv}, with the corresponding
 ## #'     value of \code{cva(m2, kappa, alpha)}. If non \code{NULL}, for the
-## #'     purposes of optimizing the shrinkage factor, compute the critical value
+## #'     purposes of optimizing the shrinkage factor, compute the
 ## #'     \code{cva} by interpolating between the critical values in this data
 ## #'     frame, instead of computing them from scratch. This can speed up the
 ## #'     calculations.
@@ -23,10 +23,10 @@
 ## #'
 ## #' \item{\code{w}}{Optimal shrinkage factor \eqn{w_{opt}}{w_opt}}
 ## #'
-## #' \item{\code{length}}{Normalized half-length of the corresponding confidence
+## #' \item{\code{length}}{Normalized half-length of the corresponding conf
 ## #' interval, so that the interval obtains by taking the estimator based on
-## #' shrinkage given by \code{w}, and adding and subtracting \code{length} times
-## #' the standard error \eqn{\sigma}{sigma} of the preliminary estimator.}
+## #' shrinkage given by \code{w}, and adding and subtracting \code{length}
+## #' times the standard error \eqn{\sigma}{sigma} of preliminary estimator.}
 ## #'
 ## #' \item{\code{m2}}{The second moment of the normalized bias,
 ## #' \eqn{(1/w-1)^{2}S}{(1/w-1)^2*S}}}
@@ -80,18 +80,18 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
 ## #' Empirical Bayes estimator and confidence intervals
 ## #'
 ## #' Compute empirical Bayes shrinkage factor \eqn{w_{eb}}{w_eb} and the
-## #' normalized half-length of of the associated robust Empirical Bayes confidence
-## #' interval (EBCI).
+## #' normalized half-length of of the associated robust Empirical Bayes
+## #' confidence interval (EBCI).
 ## #' @inheritParams w_opt
 ## #' @return Returns a list with 3 components:
 ## #' \describe{
 ## #'
 ## #' \item{\code{w}}{Empirical Bayes shrinkage factor \eqn{w_{eb}}{w_eb}}
 ## #'
-## #' \item{\code{length}}{Normalized half-length of the corresponding confidence
+## #' \item{\code{length}}{Normalized half-length of the corresponding conf
 ## #' interval, so that the interval obtains by taking the estimator based on
-## #' shrinkage given by \code{w}, and adding and subtracting \code{length} times
-## #' the standard error \eqn{\sigma}{sigma} of the preliminary estimator.}
+## #' shrinkage given by \code{w}, and adding and subtracting \code{length}
+## #' times the standard error \eqn{\sigma}{sigma} of preliminary estimator.}
 ## #'
 ## #' \item{\code{m2}}{Second moment of the normalized bias, \code{1/m2}.}
 ## #'
@@ -193,7 +193,7 @@ moments <- function(eps, se, wgt, fs_correction="PMT", mu2=NULL, kappa=NULL) {
 #'
 #' \item{\code{X}}{Matrix of regressors}
 #'
-#' \item{\code{alpha}}{Determines confidence level \eqn{1-\alpha}{1-alpha} used.}
+#' \item{\code{alpha}}{Determines confidence level \eqn{1-\alpha} used.}
 #'
 #' \item{\code{df}}{Data frame with components described below.}
 #' }
@@ -244,9 +244,10 @@ moments <- function(eps, se, wgt, fs_correction="PMT", mu2=NULL, kappa=NULL) {
 #'
 #' }
 #' @examples
-#' ## Using only commuting zones in New York
-#' ebci(theta25 ~ stayer25, cz[cz$state=="NY", ],
-#'      se25, 1/se25^2)
+#' ## Same specification as in empirical example in Armstrong, Kolesár
+#' ## and Plagborg-Møller (2020), but only use data on NY commuting zones
+#' r <- ebci(theta25 ~ stayer25, data=cz[cz$state=="NY", ],
+#'           se=se25, weights=1/se25^2)
 #' @export
 ebci <- function(formula, data, se, weights=NULL, alpha=0.1, kappa=NULL,
                  wopt=FALSE, fs_correction="PMT") {

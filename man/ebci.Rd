@@ -71,7 +71,7 @@ structure as \code{mu2}.}
 
 \item{\code{X}}{Matrix of regressors}
 
-\item{\code{alpha}}{Determines confidence level \eqn{1-\alpha}{1-alpha} used.}
+\item{\code{alpha}}{Determines confidence level \eqn{1-\alpha} used.}
 
 \item{\code{df}}{Data frame with components described below.}
 }
@@ -121,9 +121,10 @@ and associated robust empirical Bayes confidence intervals (EBCIs), as well
 as length-optimal robust EBCIs.
 }
 \examples{
-## Using only commuting zones in New York
-ebci(theta25 ~ stayer25, cz[cz$state=="NY", ],
-     se25, 1/se25^2)
+## Same specification as in empirical example in Armstrong, Kolesár
+## and Plagborg-Møller (2020), but only use data on NY commuting zones
+r <- ebci(theta25 ~ stayer25, data=cz[cz$state=="NY", ],
+          se=se25, weights=1/se25^2)
 }
 \references{
 {
