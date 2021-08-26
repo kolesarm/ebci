@@ -191,6 +191,10 @@ moments <- function(eps, se, wgt, fs_correction="PMT", mu2=NULL, kappa=NULL) {
 #'
 #' \item{\code{delta}}{Estimated regression coefficients \eqn{\delta}{delta}}
 #'
+#' \item{\code{X}}{Matrix of regressors}
+#'
+#' \item{\code{alpha}}{Determines confidence level \eqn{1-\alpha}{1-alpha} used.}
+#'
 #' \item{\code{df}}{Data frame with components described below.}
 #' }
 #'

@@ -19,7 +19,7 @@ the implied least favorable distribution satisfies the \code{m2} and
 \code{kappa} constraints and yields the same non-coverage rate. If this
 fails (perhaps due to numerical accuracy issues), solve a finite-grid
 approximation (by discretizing the support of the normalized bias) to the
-primal linear programing problem, and check that it agrees with the dual
+primal linear programming problem, and check that it agrees with the dual
 solution.}
 }
 \value{

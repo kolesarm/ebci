@@ -1,23 +1,5 @@
 context("Check optimal and EB shrinkage")
 
-test_that("Check shrinkage with cv_tbl ", {
-    ## cva_tbl too coarse
-    cv_tbl <- cva_tbl[cva_tbl$kappa==3 & cva_tbl$alpha==0.05, ]
-    cv_tbl2 <- cv_tbl[cv_tbl$m2<=1, ]
-    expect_warning(w_opt(0.1^2, 3, cv_tbl=cv_tbl2))
-    expect_lt(max(abs(unlist(w_opt(1, 3, cv_tbl=cv_tbl))-unlist(w_opt(1, 3)))),
-              3e-4)
-    expect_lt(max(abs(unlist(w_opt(0.01, 3, cv_tbl=cv_tbl))-
-                      unlist(w_opt(0.01, 3)))), 4e-4)
-    cv_tbl <- cva_tbl[cva_tbl$kappa==Inf & cva_tbl$alpha==0.05, ]
-    expect_lt(max(abs(unlist(w_opt(0.01, Inf, cv_tbl=cv_tbl))-
-                      unlist(w_opt(0.01, Inf)))), 3e-4)
-    ## eb shrinkage should be close to optimal
-    expect_lt(max(abs(unlist(w_opt(20^2, 4))-unlist(w_eb(20^2, 4)))),
-              5e-5)
-
-})
-
 test_that("Table 1 in paper", {
     ts <- cz[!is.na(cz$theta25), ]
     eb_table <- function(res, wgt) {

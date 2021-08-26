@@ -227,7 +227,7 @@ CVb <- function(B, alpha=0.05) {
 #'     \code{kappa} constraints and yields the same non-coverage rate. If this
 #'     fails (perhaps due to numerical accuracy issues), solve a finite-grid
 #'     approximation (by discretizing the support of the normalized bias) to the
-#'     primal linear programing problem, and check that it agrees with the dual
+#'     primal linear programming problem, and check that it agrees with the dual
 #'     solution.
 #' @return Returns a list with 4 components: \describe{
 #'
