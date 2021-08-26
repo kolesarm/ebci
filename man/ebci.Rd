@@ -43,8 +43,8 @@ process in computing \eqn{\delta}{delta}, \eqn{\mu_2}{mu_2} and
 \code{Inf}), instead of computing it.}
 
 \item{wopt}{If \code{TRUE}, also compute length-optimal robust EBCIs. These
-are robust EBCIs centered at length-optimal shrinkage factors
-\code{\link{w_opt}}.}
+are robust EBCIs centered at estimates with the shrinkage factor
+\eqn{w_i}{w_i} chosen to minimize the length of the resulting EBCI.}
 
 \item{fs_correction}{Finite-sample correction method used to compute
 \eqn{\mu_2}{mu_2} and \eqn{\kappa}{kappa}. These corrections ensure that
@@ -57,15 +57,15 @@ and \code{1} for \eqn{\kappa}{kappa}.}
 \value{
 Returns a list with the following components: \describe{
 
-\item{\code{sqrt_mu2}}{Square root of the estimated second moment of
-\eqn{\theta-X'\delta}{theta-X*delta}, \eqn{\sqrt{\mu_2}}{mu_2^(1/2)}. Vector
+\item{\code{mu2}}{Estimated second moment of
+\eqn{\theta-X'\delta}{theta-X*delta}, \eqn{\mu_2}{mu_2}. Vector
 of length 2, the first element corresponds to the estimate after the
 finite-sample correction as specified by \code{fs_correction}, the second
 element is the uncorrected estimate.}
 
 \item{\code{kappa}}{Estimated kurtosis \eqn{\kappa}{kappa} of
 \eqn{\theta-X'\delta}{theta-X*delta}. Vector of length 2 with the same
-structure as \code{sqrt_mu2}.}
+structure as \code{mu2}.}
 
 \item{\code{delta}}{Estimated regression coefficients \eqn{\delta}{delta}}
 
@@ -79,7 +79,7 @@ structure as \code{sqrt_mu2}.}
 \item{\code{w_eb}}{EB shrinkage factors,
 \eqn{\mu_{2}/(\mu_{2}+\sigma^2_i)}{mu_2/(mu_2+sigma^2_i)}}
 
-\item{\code{w_opt}}{Optimal shrinkage factors \code{\link{w_opt}}}
+\item{\code{w_opt}}{Length-optimal shrinkage factors}
 
 \item{\code{ncov_pa}}{Maximal non-coverage of parametric EBCIs}
 
@@ -100,10 +100,15 @@ th_op+len_op)}}
 
 \item{\code{th_eb}}{EB estimate.}
 
-\item{\code{th_eb}}{Estimate based on length-optimal shrinkage.}
+\item{\code{th_op}}{Estimate based on length-optimal shrinkage.}
 
 \item{\code{se}}{Standard error \eqn{\sigma}{sigma}, as supplied by the
-argument \code{se}.}
+argument \code{se}}
+
+\item{\code{weights}}{Weights used}
+
+\item{\code{residuals}}{The residuals \eqn{Y_i-X_i\delta}{Y_i-X_i*delta}}
+
 }
 }
 \description{

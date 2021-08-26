@@ -35,51 +35,48 @@ Suppose we use an empirical Bayes estimator of $\theta_i$ that shrinks toward
 the predictor based on the regression of $\theta_i$ onto $X_i$ (equivalently,
 regression of $Y_i$ onto $X_i$),
 \begin{equation}\label{Bayes-estimator}
-\hat{\theta}_{i} = X_i'\delta+w_i(Y_i-X_i'\delta),
+\hat{\theta}_{i} = X_i'\delta+w_{EB, i}(Y_i-X_i'\delta),
 \end{equation}
-where $\delta=E[X_i X_i']^{-1}E[X_i\theta_i]$,
-$w_i=\frac{\mu_{2}}{\mu_{2}+\sigma_{i}^{2}}$, and
+
+where $\delta=E[X_i X_i']^{-1}E[X_i\theta_i]$, $w_{EB,
+i}=\frac{\mu_{2}}{\mu_{2}+\sigma_{i}^{2}}$ is the degree of shrinkage, and
 \begin{equation}\label{mu2-independence}
 \mu_{2}=E[(\theta_i-X_i'\delta)^{2} \mid X_{i}, \sigma_i].
 \end{equation}
-We assume that $\mu_2$ doesn't depend on $\sigma_i$. @morris83 proposes to use the
-*parametric EBCI*
-\begin{equation*}
-\hat{\theta}_{i} \pm \frac{z_{1-\alpha/2}}{\sqrt{w_i}}w_i\sigma_i.
+is the second moment of the regression residual. We assume that $\mu_2$ doesn't
+depend on $\sigma_i$. Under this setup, @morris83 proposes to use the *parametric EBCI*
+\begin{equation*} \hat{\theta}_{i} \pm
+\frac{z_{1-\alpha/2}}{\sqrt{w_{EB, i}}}w_{EB, i}\sigma_i.
 \end{equation*}
 
-The critical value $z_{1-\alpha/2}/\sqrt{w_i}$ is larger than the usual critical
-value $z_{1-\alpha/2}=$`qnorm(1-alpha/2)` if the estimator was unbiased
+The critical value $z_{1-\alpha/2}/\sqrt{w_{EB, i}}$ is larger than the usual
+critical value $z_{1-\alpha/2}=$`qnorm(1-alpha/2)` if the estimator was unbiased
 conditional on $\theta_i$. This CI is justified if we strengthen the assumption
 (\ref{mu2-independence}) by making the normality assumption $\theta_i\mid X_{i},
-\sigma_{i} \sim N(X_i'\delta, \mu_2)$: to account for the bias
-$b_i=(1-w)(\theta_i-X_i'\delta)$ of the estimator (more precisely $b_i$ is the
-bias conditional on $(X_i,\theta_i,\sigma_i)$), the parametric EBCI assumes that
-it is normally distributed.
-
-A *robust EBCI* that is only uses (\ref{mu2-independence}) and not the normality
-assumption takes the form
+\sigma_{i} \sim N(X_i'\delta, \mu_2)$. However, if the residual
+$\theta_i-X_i'\delta$ is not normally distributed, this CI will undercover.
+@akp20 derive a *robust EBCI* that is only uses (\ref{mu2-independence}) and not
+the normality assumption. The EBCI takes the form
 \begin{equation}\label{robust-ebci}
-X_i'\delta+w_i(Y_i-X_i'\delta) \pm cva_{\alpha}(m_2, \infty) w_i\sigma_i,
-\,\, m_2=(1-1/w_i)^2\mu_2/\sigma^2_i,
+\hat{\theta}_{i} \pm cva_{\alpha}(m_{2i}, \infty) w_{EB, i}\sigma_i,
+\,\, m_{2i}=(1-1/w_{EB, i})^2\mu_2/\sigma^2_i=\sigma^{2}_{i}/\mu_{2},
 \end{equation}
-where the critical value $cva_{\alpha}$ is derived in @akp20. Here $m_2$ is the
-second moment of the bias-standard deviation ratio $m_2=b_i/(w_i\sigma_i)$,
-which we refer to as the normalized bias. This critical value imposes a
+where the critical value $cva_{\alpha}$ is derived in @akp20. Here $m_{2i}$ is the
+second moment of the conditional bias of $\hat{\theta}_i$, scaled by the
+standard error (normalized bias, henceforth). This critical value imposes a
 constraint (\ref{mu2-independence}) on the second moment of $\theta_i$, but no
 constraints on higher moments. We can make the critical value smaller by also
 imposing a constraint on the kurtosis of $\theta_i$ (or equivalently, the
 kurtosis of the normalized bias)
-\begin{equation}
-\label{kappa-independence}
+\begin{equation}\label{kappa-independence}
  \kappa=E[(\theta_i-X_i'\delta)^{4}
-\mid X_{i}, \sigma_i]/\mu_{2}^2=E[b_i^4]/E[b_i^2]^2.
+\mid X_{i}, \sigma_i]/\mu_{2}^2.
 \end{equation}
 In analogy to (\ref{mu2-independence}), we assume here that the conditional fourth
 moment of $\theta_i-X_i'\delta$ doesn't depend on $(X_i,\sigma_i)$. In this
 case, the robust EBCI takes the form
 \begin{equation*}
-\hat{\theta}_{i} \pm cva_{\alpha}(m_2,\kappa)w_i\sigma_i,\,\, m_2=(1-1/w_i)^2\mu_2\sigma^2_i,
+\hat{\theta}_{i} \pm cva_{\alpha}(m_{2i},\kappa) w_{EB, i}\sigma_i.
 \end{equation*}
 
 These critical values are implemented in the package by the `cva` function:
@@ -94,6 +91,11 @@ cva(m2=4, kappa=Inf, alpha=0.05)$cv
 cva(m2=4, kappa=3, alpha=0.05)$cv
 ```
 
+In practice, the parameters $\delta, \mu_2$, and $\kappa$ are unknown. To
+implement the EBCI, the package replaces them with consistent estimates,
+following the baseline implementation in @akp20. We illustrate this in the next
+section.
+
 # Example
 
 Here we illustrate the use of the package using a dataset from @ChHe18ii (CH
@@ -104,13 +106,18 @@ $(\delta,\mu_2,\kappa)$.
 
 
 ```{r}
-## As Y_i, use fixed effect estimate theta25 of causal effect of neighborhood for children with parents at the 25th percentile of income distribution. The standard error for this estimate is se25. As predictors use average outcome for permanent residents (stayers), stayer25. Let us use 90% CIs.
+## As Y_i, use fixed effect estimate theta25 of causal effect of neighborhood
+## for children with parents at the 25th percentile of income distribution. The
+## standard error for this estimate is se25. As predictors use average outcome
+## for permanent residents (stayers), stayer25. Let us use 90% CIs, as in
+## Armstrong et al
 r <- ebci(formula=theta25~stayer25, data=cz, se=se25, weights=1/se25^2,
-          alpha=0.1, wopt=FALSE)
+          alpha=0.1)
 ```
 
 For shrinkage toward the grand mean, or toward zero, use the specification
-`theta25 ~ 1`, or `theta25 ~ 0` in the `formula` argument of `ebci`.
+`theta25 ~ 1`, and `theta25 ~ 0`, respectively, in the `formula` argument of
+`ebci`.
 
 The return value contains (see `?ebci` for full description)
 
@@ -126,62 +133,73 @@ The return value contains (see `?ebci` for full description)
    ```{r}
    c(r$mu2, r$kappa)
    ```
-3. A data frame with columns:
+3. The parameter $\alpha$ determining the confidence level, `r$alpha`, and the
+   matrix of regressors, `r$X`.
+4. A data frame with columns:
    ```{r}
    names(r$df)
    ```
 
 The columns of the data frame refer to:
 
-- `w_eb` Empirical Bayes shrinkage factor $w_i=\mu_2/(\mu_2+\sigma_i^2)$.
+- `w_eb` Empirical Bayes shrinkage factor $w_{EB, i}=\mu_2/(\mu_2+\sigma_i^2)$.
 - `th_eb` Empirical Bayes estimator $\hat{\theta_i}$ given in (\ref{Bayes-estimator})
 - `len_eb` Half-length $cva_{\alpha}(m_2, \kappa)w_i\sigma_i$ of the robust
   EBCI, so that the lower endpoint of the EBCIs are given by `th_eb-len_eb`, and
-  the upper endpoint by `th_eb+len_eb`. For a given observation, this can be
-  also computed directly using the `cva` function:
+  the upper endpoint by `th_eb+len_eb`. Let us verify this for the first observation:
   ```{r}
-  cva(m2=((1-1/r$df$w_eb[1])/r$df$se[1])^2*r$mu2[1], r$kappa[1], alpha=0.1)$cv*
-  r$df$w_eb[1]*r$df$se[1]
+  cva(r$df$se[1]^2/r$mu2[1], r$kappa[1], alpha=0.1)$cv*r$df$w_eb[1]*r$df$se[1]
   r$df$len_eb[1]
   ```
 - `len_pa` Half-length $z_{1-\alpha/2}\sqrt{w_i}\sigma_i$ of the parametric EBCI.
 - `w_opt` Shrinkage factor that optimizes the length of the resulting confidence
-  interval, that is, the value of $w_i$ that minimizes (\ref{robust-ebci}) over
-  $w_i$ (missing here since we specified `wopt=FALSE`)
+  interval. In other words, instead of using $w_{EB, i}$ in (\ref{robust-ebci}),
+  we use shrinkage $w_i$ that minimizes $cva_{\alpha}((1-1/w_{EB,
+  i})^2\mu_2/\sigma^2_i, \kappa) w_{i}\sigma_i$. See @akp20 for details. The
+  vector is missing here since the default option, `wopt=FALSE`, is to skip
+  computation of the length-optimal CIs to speed up the calculations.
 - `th_op` Estimator based on the length-optimal shrinkage factor `w_opt`
-  (missing here since we specified `wopt=FALSE`)
-- `len_op` Half-length $cva_{\alpha}(m_2, \kappa)w_i\sigma_i$ of the
-  length-optimal EBCI (missing here since we specified `wopt=FALSE`).
+  (missing here since the default is `wopt=FALSE`)
+- `len_op` Half-length $cva_{\alpha}((1-1/w_{EB, i})^2\mu_2/\sigma^2_i, \kappa)
+  w_{i}\sigma_i$ of the length-optimal EBCI (missing here since we specified
+  `wopt=FALSE`).
 - `th_us` The unshrunk estimate $Y_i$, as specified in the `formula` argument of
   the function `ebci`.
 - `len_us` Half-length $z_{1-\alpha/2}\sigma_i$ of the CI based on the unshrunk
   estimate
 - `se` The standard error $\sigma_i$, as specified by the argument `se` of the
   `ebci` function.
-- `ncov_pa` average (across observations) maximal non-coverage of the parametric
-  EBCI.
+- `ncov_pa` maximal non-coverage of the parametric EBCI.
 
 Using the data frame, we can give a table summarizing the results. Let us show
-the results for the CZ in California:
+the results for the CZ in New York:
 ```{r}
 df <- (cbind(cz[!is.na(cz$se25), ], r$df))
-df <- df[df$state=="CA", ]
+df <- df[df$state=="NY", ]
 
 knitr::kable(data.frame(cz=df$czname, unshrunk_estimate=df$theta25,
              estimate=df$th_eb,
              lower_ci=df$th_eb-df$len_eb, upper_ci=df$th_eb+df$len_eb),
              digits=3)
 ```
+Figure 6 in @akp20 presents the same information in graphical form.
 
-Using shrinkage tightens the robust EBCIs relative to the unshrunk CI by a
-factor of
+Finally, let us compute some summary statistics as in Table 3 in @akp20. Average
+length of the robust, parametric, and unshrunk CI:
+
 ```{r}
-mean(r$df$len_us)/mean(r$df$len_eb)
+mean(r$df$len_eb)
+mean(r$df$len_pa)
+mean(r$df$len_us)
 ```
-on average.
+Therefore, the efficiency of the parametric and unshrunk CI relative to the robust EBCI is given by
+```{r}
+mean(r$df$len_eb)/mean(r$df$len_pa)
+mean(r$df$len_eb)/mean(r$df$len_us)
+```
 
-On the other hand, using the parametric EBCI yields CIs that violate the
-90% coverage requirement, the average maximal non-coverage probability at the
+While the parametric EBCI is shorter on average, it yields CIs that may violate the
+90% coverage requirement. In particular, the average maximal non-coverage probability at the
 estimated value of $(\mu_{2},\kappa)$ is given by
 ```{r}
 mean(r$df$ncov_pa)

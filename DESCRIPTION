@@ -20,7 +20,7 @@ Description: Computes empirical Bayes confidence estimators and confidence
     that they achieve correct coverage regardless of the distribution of the
     means. If the means are treated as fixed, the EBCIs have an average coverage
     guarantee.
-Depends: R (>= 3.6.0)
+Depends: R (>= 4.1.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
