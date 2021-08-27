@@ -1,9 +1,11 @@
 ^LICENSE\.md$
-.lintr
-^data-raw/*$
 ^doc$
-^codecov\.yml$
-.gitignore
-.lintr
 ^Meta$
+.lintr
+^README\.md$
+.gitignore
+^data-raw/*$
+^codecov\.yml$
+^cran-comments\.md$
+^CRAN-RELEASE$
 ^\.github$
