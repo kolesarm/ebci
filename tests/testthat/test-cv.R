@@ -28,9 +28,9 @@ test_that("Numerical issues with rt0", {
            numeric(1))
     expect_equal(vals/sqrt((1+m2s)/0.1), rep(1, length(m2s)))
 
-    ## This is increasing, maximum at 4.8518e-26, close to 1.
-    expect_equal(lam(x0=180144474255572736,
-                     chi=424434295.36931574345)$lam/4.851805e-26, 1L)
+    ## This is increasing, maximum at 4.8518e-26, close to 1
+    expect_lt(abs(lam(x0=180144474255572736,
+                     chi=424434295.36931574345)$lam/4.851805e-26 - 1L), 1e-6)
     ## This one is decreasing, max should be at 0
     expect_equal(lam(x0=12577.803781, chi=109.857326)$x0, 0L)
     ## First derivative evaluates to negative, but should probably be possitive;
