@@ -8,8 +8,7 @@
   - Windows Server x64, R 4.1.1
   - macOS Catalina 10.15.7, R 4.1.1
   - Ubuntu 20.04.2 LTS, R 4.1.1
-  - Ubuntu 20.04.2 LTS, R-devel (2021-08-25 r80817)
-
+  - Ubuntu 20.04.2 LTS, R-devel (2021-09-01 r80844)
 ## R CMD check results
 There were no ERRORs or WARNINGs.
 
@@ -22,7 +21,7 @@ There was 1 NOTE:
 
   Possibly misspelled words in DESCRIPTION:
     Kolesár (22:58)
-    M�ller (23:14)
+    Møller (23:14)
     Plagborg (23:5)
 
   Found the following (possibly) invalid URLs:
