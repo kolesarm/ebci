@@ -14,13 +14,19 @@ Matlab version of this package, and
 
 This software package is based upon work supported by the National Science
 Foundation under grant numbers SES-2049765 (Armstrong), SES-22049356 (Kolesár),
-and (SES-1851665), and by work supported by the Alfred P. Sloan Research
-Fellowship (Kolesár).
+and SES-1851665 (Plagborg-Møller), and by work supported by the Alfred P. Sloan
+Research Fellowship (Kolesár).
 
 ## Installation
 
-You can get the current development version from GitHub:
+You can install the released version of `ebci` from
+[CRAN](https://CRAN.R-project.org/package=ebci) with:
 
+``` r
+install.packages("ebci")
+```
+
+Alternatively, you can get the current development version from GitHub:
 ``` r
 if (!requireNamespace("remotes")) {
   install.packages("remotes")

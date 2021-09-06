@@ -1,6 +1,6 @@
 Package: ebci
 Title: Robust Empirical Bayes Confidence Intervals
-Version: 1.0.0
+Version: 1.0.0.9000
 Authors@R:
     c(person(given = "Michal",
             family = "Kolesár",
@@ -10,7 +10,7 @@ Authors@R:
       person(given= "Tim",
              family = "Armstrong",
              role = "ctb",
-             email = "timothy.armstrong@yale.edu"),
+             email = "tim.b.armstrong@gmail.com"),
       person(given = "Mikkel",
              family = "Plagborg-Møller",
              role = "ctb",
