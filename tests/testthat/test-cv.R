@@ -24,13 +24,13 @@ test_that("Numerical issues with rt0", {
 
     m2s <- seq(1/1000, 100, length.out=10)*m2
     vals <- vapply(m2s,
-           function(r) cva(r, kappa=400, check=FALSE, alpha=0.1)$cv,
-           numeric(1))
+                   function(r) cva(r, kappa=400, check=FALSE, alpha=0.1)$cv,
+                   numeric(1))
     expect_equal(vals/sqrt((1+m2s)/0.1), rep(1, length(m2s)))
 
     ## This is increasing, maximum at 4.8518e-26, close to 1
     expect_lt(abs(lam(x0=180144474255572736,
-                     chi=424434295.36931574345)$lam/4.851805e-26 - 1L), 1e-6)
+                      chi=424434295.36931574345)$lam/4.851805e-26 - 1L), 1e-6)
     ## This one is decreasing, max should be at 0
     expect_equal(lam(x0=12577.803781, chi=109.857326)$x0, 0L)
     ## First derivative evaluates to negative, but should probably be possitive;
@@ -59,7 +59,7 @@ test_that("Simple critical value sanity checks", {
                  cva(m2=4, kappa=Inf, check=TRUE, alpha=0.05)$cv)
     ## Here under kappa=Inf, solution has kurtosis (sol$x[2]^2*sol$p[2])/16=16.6
     expect_lt(cva(m2=0.25, kappa=15, check=TRUE, alpha=0.05)$cv,
-                 cva(m2=0.25, kappa=Inf, check=TRUE, alpha=0.05)$cv)
+              cva(m2=0.25, kappa=Inf, check=TRUE, alpha=0.05)$cv)
 
     expect_equal(cva(m2=25, kappa=3, check=TRUE)$cv, 11.88358367)
     expect_equal(cva(m2=1, kappa=3, check=TRUE, alpha=0.2)$cv, 1.8494683)
@@ -86,8 +86,9 @@ test_that("Check large values", {
 
     store_cva <- function(m2, kappa, alpha, check=TRUE) {
         df <- expand.grid(m2=m2, kappa=kappa, alpha=alpha)
-        cvj <- function(j)
+        cvj <- function(j) {
             cva(df$m2[j], kappa=df$kappa[j], df$alpha[j], check)$cv
+        }
         df$cv <- vapply(seq_len(nrow(df)), cvj, numeric(1))
         df
     }
@@ -105,18 +106,17 @@ test_that("Check delta1 has crosses zero at most once", {
         x0s <- xs
         ## If chi <=2.856, then derivative should always be negative
         if (chi <=  2.856) {
-            expect_equal(sum(vapply(x0s, function(x0)
-                sum(delta1(xs, x0, chi) >= 0), numeric(1))),
-                0L)
+            a <- vapply(x0s, function(x0) sum(delta1(xs, x0, chi) >= 0),
+                        numeric(1))
+            expect_equal(sum(a), 0L)
         } else {
             ## Derivative should be first positive, then negative. Only need
             ## this to hold on [0, t1] if x>t1
             der <- function(x0) {
-                    delta1(xs[1:(100*(x0 >= ts[1])+(x0<ts[1])*200)], x0, chi)
+                delta1(xs[1:(100 * (x0 >= ts[1]) + (x0<ts[1])*200)], x0, chi)
             }
-            expect_equal(sum(vapply(x0s, function(x0)
-                is.unsorted(!(der(x0) >= 0)), logical(1))),
-                0L)
+            a <- function(x0) is.unsorted(!(der(x0) >= 0))
+            expect_equal(sum(vapply(x0s, a, logical(1))), 0L)
         }
     }
     chis <- seq(sqrt(3), 50, length.out=300)

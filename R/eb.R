@@ -47,7 +47,7 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
         cv <- function(m2) {
             idx <- which.max(cv_tbl$m2>m2)
             idx0 <- max(idx-1, 1)
-            cv_tbl$cv[idx0]+(m2-cv_tbl$m2[idx0])/
+            cv_tbl$cv[idx0] + (m2-cv_tbl$m2[idx0])/
                 (cv_tbl$m2[idx]-cv_tbl$m2[idx0]) *
                 (cv_tbl$cv[idx]-cv_tbl$cv[idx0])
         }
@@ -61,8 +61,8 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
     }
     ci_length <- function(w) cv((1/w-1)^2*S)*w
     if (S > tol) {
-        r <- stats::optimize(ci_length, c(1/(sqrt(maxbias/S)+1),
-                                          1/(sqrt(minbias/S)+1)), tol=tol)
+        r <- stats::optimize(ci_length, c(1 / (sqrt(maxbias/S)+1),
+                                          1 / (sqrt(minbias/S)+1)), tol=tol)
         m2 <- (1/r$minimum-1)^2*S
     } else {
         r <- list(minimum=0, objective=NA)
@@ -109,18 +109,21 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
 ## #' ## larger half-length
 ## #' w_eb(2, Inf)
 w_eb <- function(S, kappa=Inf, alpha=0.05) {
-    w <- S/(1+S)
+    w <- S / (1+S)
     list(w=w, length=cva(1/S, kappa=kappa, alpha=alpha, check=TRUE)$cv*w,
          m2=1/S)
 }
 
 ## (Trimmed) moments estimation
 moments <- function(eps, se, wgt, fs_correction="PMT", mu2=NULL, kappa=NULL) {
-    wgtV <- function(Z, wgt)
-        sum(wgt^2*(Z^2-stats::weighted.mean(Z, wgt)^2))/(sum(wgt)^2-sum(wgt^2))
-    tmean <- function(m, V)  m + sqrt(V)*stats::dnorm(m/sqrt(V))/
-                                 stats::pnorm(m/sqrt(V))
-
+    wgtV <- function(Z, wgt) {
+        sum(wgt^2 * (Z^2-stats::weighted.mean(Z, wgt)^2)) /
+            (sum(wgt)^2-sum(wgt^2))
+    }
+    tmean <- function(m, V)  {
+        m + sqrt(V)*stats::dnorm(m/sqrt(V))/
+            stats::pnorm(m/sqrt(V))
+    }
     w2 <- eps^2 - se^2
     w4 <- eps^4 - 6*se^2*eps^2 + 3*se^4
     ## \tilde{mu}_2, \tilde{mu}_4)
@@ -289,36 +292,39 @@ ebci <- function(formula, data, se, weights=NULL, alpha=0.1, kappa=NULL,
     eb <- vapply(se, function(se) unlist(w_eb(mus[1]/se^2, mus[2], alpha)),
                  numeric(3))
     eb <- as.data.frame(t(eb))
-    th_eb <- mu1+eb$w*(Y-mu1)
+    th_eb <- mu1 + eb$w * (Y-mu1)
 
     ## Optimal shrinkage. First pre-compute cva for this kurtosis
-    if (length(se) > 30 & wopt) {
+    if (length(se) > 30 && wopt) {
         mmin <- w_opt(mus[1]/min(se)^2, mus[2], alpha=alpha)$m2
         mmax <- w_opt(mus[1]/max(se)^2, mus[2], alpha=alpha)$m2
         df <- data.frame(m2=c(mmin*0.95, seq(mmin, mmax, length.out=501),
                               mmax*1.05))
-        cvj <- function(j)
+        cvj <- function(j) {
             cva(df$m2[j], kappa=mus[2], alpha, check=TRUE)$cv
+        }
         df$cv <- vapply(seq_len(nrow(df)), cvj, numeric(1))
     } else {
         df <- NULL
     }
 
     if (wopt) {
-        op <- vapply(se, function(se)
-            unlist(w_opt(mus[1]/se^2, mus[2], cv_tbl=df,
-                         alpha=alpha)), numeric(3))
+        ff <- function(se) {
+            unlist(w_opt(mus[1]/se^2, mus[2], cv_tbl=df, alpha=alpha))
+        }
+        op <- vapply(se, ff, numeric(3))
         op <- as.data.frame(t(op))
-        th_op <- mu1+op$w*(Y-mu1)
+        th_op <- mu1 + op$w * (Y-mu1)
     } else {
         op <- eb*NA
         th_op <- th_eb*NA
     }
 
     ## Nonparametric moment estimates for critical values
-    par_cov <- function(j)
+    par_cov <- function(j) {
         rho(se[j]^2/mus[1], mus[2],
             za*sqrt(1+se[j]^2/mus[1]), check=TRUE)$alpha
+    }
     ncov_pa <- vapply(seq_along(Y), par_cov, numeric(1))
 
     df <- data.frame(w_eb=eb$w, w_opt=op$w, ncov_pa=ncov_pa,

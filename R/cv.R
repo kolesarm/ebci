@@ -15,27 +15,29 @@ r <- function(t, chi) {
 r1 <- function(t, chi) {
     ## Apply L'Hospital's rule. This gives maximum absolute error 1e-9
     ifelse(t >= 1e-8,
-    (stats::dnorm(sqrt(t)-chi)-stats::dnorm(sqrt(t)+chi)) / (2*sqrt(t)),
-    chi*stats::dnorm(chi))
+           (stats::dnorm(sqrt(t)-chi)-stats::dnorm(sqrt(t)+chi)) / (2*sqrt(t)),
+           chi*stats::dnorm(chi))
 }
 
 ## Second Derivative of r
 r2 <- function(t, chi) {
     ## Apply L'Hospital's rule 3x. This gives maximum abs error about 8e-8
     ifelse(t >= 2e-6,
-           (stats::dnorm(sqrt(t)+chi)*(chi*sqrt(t)+t+1)+
-            stats::dnorm(sqrt(t)-chi)*(chi*sqrt(t)-t-1)) / (4*t^(3/2)),
-           stats::dnorm(chi)*chi*(chi^2-3)/6)
+           (stats::dnorm(sqrt(t)+chi) * (chi*sqrt(t)+t+1)+
+                stats::dnorm(sqrt(t)-chi) * (chi*sqrt(t)-t-1)) / (4*t^(3/2)),
+           stats::dnorm(chi) * chi * (chi^2-3)/6)
 }
 
 ## Third Derivative of r
 r3 <- function(t, chi) {
     ## Apply L'Hospital's rule 5x. This gives maximum abs error about 3e-6
     ifelse(t >= 2e-4,
-    (stats::dnorm(chi-sqrt(t))*(t^2-2*chi*t^(3/2)+(2+chi^2)*t-3*chi*sqrt(t)+3)
-    -stats::dnorm(chi+sqrt(t))*(t^2+2*chi*t^(3/2)+(2+chi^2)*t+3*chi*sqrt(t)+3))
-    /(8*t^(5/2)),
-    stats::dnorm(chi)*(chi^5-10*chi^3+15*chi)/60)
+           (stats::dnorm(chi-sqrt(t)) *
+                (t^2-2*chi*t^(3/2) + (2+chi^2)*t-3*chi*sqrt(t)+3)-
+                stats::dnorm(chi+sqrt(t)) *
+                    (t^2+2*chi*t^(3/2) + (2+chi^2)*t+3*chi*sqrt(t)+3)) /
+               (8*t^(5/2)),
+           stats::dnorm(chi) * (chi^5-10*chi^3+15*chi)/60)
 }
 
 ## find t0 and inflection point, called t1 in the paper.
@@ -46,7 +48,7 @@ rt0 <- function(chi) {
         t0 <- ip <- 0
     } else {
         ## Avoid issues when chi is numerically very large
-        if (abs(r2(chi^2-3/2, chi=chi)) < tol | (chi^2-3)-chi^2==0L)
+        if (abs(r2(chi^2-3/2, chi=chi)) < tol || (chi^2-3)-chi^2==0L)
             ip <- chi^2-3/2
         else
             ip <- stats::uniroot(r2, c(chi^2-3, chi^2), tol=tol, chi=chi)$root
@@ -85,14 +87,15 @@ delta <- function(x, x0, chi) {
     ## Apply L'Hospital's rule 2x. This gives maximum abs error about 1e-7
     ifelse(abs(x-x0)<1e-4,
            r2(x0, chi)/2,
-           (r(x, chi) - r(x0, chi) - r1(x0, chi)*(x-x0)) / (x-x0)^2)
+           (r(x, chi) - r(x0, chi) - r1(x0, chi) * (x-x0)) / (x-x0)^2)
 }
 
 delta1 <- function(x, x0, chi) {
     ## Apply L'Hospital's rule 2x. This gives maximum abs error about 7e-6
     ifelse(abs(x-x0)<1e-3,
            r3(x0, chi)/6,
-           ((r1(x, chi)+r1(x0, chi))-2*(r(x, chi)-r(x0, chi))/(x-x0))/(x-x0)^2)
+           ((r1(x, chi)+r1(x0, chi))-2 * (r(x, chi)-r(x0, chi)) / (x-x0)) /
+               (x-x0)^2)
 }
 
 ## maximize delta(x, x0, chi) over x.
@@ -111,9 +114,9 @@ lam <- function(x0, chi) {
     opt0 <- list(lam=val[1], x0=0L)
     ## Expect delta has single maximum, so first increasing, then
     ## decreasing, up to numerical tolerance
-    if ((all(der <= 0) & which.max(val)==1)) {
+    if ((all(der <= 0) && which.max(val)==1)) {
         return(opt0)
-    } else if (all(diff(der>=0)<=0) & der[length(der)]<=0) {
+    } else if (all(diff(der>=0)<=0) && der[length(der)]<=0) {
         ## Function first increasing, then decreasing
         idx <- max(which.min(der>=0), 2) # in case all derivatives negative
         ival <- xs[(idx-1):idx]
@@ -161,25 +164,28 @@ rho <- function(m2, kappa, chi, check=TRUE, len=5000) {
             ## delta(x, x0) maximized at 0
             ifelse(x0 >= tbar, delta(0, x0, chi), max(lam(x0, chi)$lam, 0))
         }
-        obj <-  function(x0)
-            r(x0, chi)+r1(x0, chi)*(m2-x0)+
-                lammax(x0)*(kappa*m2^2-2*x0*m2+x0^2)
+        obj <-  function(x0) {
+            r(x0, chi)+r1(x0, chi) * (m2-x0)+
+                lammax(x0) * (kappa*m2^2-2*x0*m2+x0^2)
+        }
         ## Optimize separately below and above \bar{t}, since there are
         ## typically be multiple local minima
-        rb <- if (tbar >0)
-            stats::optimize(obj, interval=c(0, tbar), tol=10^3*tol)
-              else
-            list(minimum=0, objective=obj(0))
+        rb <-
+            if (tbar >0) {
+                stats::optimize(obj, interval=c(0, tbar), tol=10^3*tol)
+            } else {
+                list(minimum=0, objective=obj(0))
+            }
         ra <- stats::optimize(obj, interval=c(tbar, t0), tol=10^3*tol)
         rr <- if (rb$objective<ra$objective) rb else ra
         ## LF points
         xs0 <- sort(c(rr$minimum, lam(rr$minimum, chi)$x0))
-        p <- (m2-xs0[2])/(xs0[1]-xs0[2])
+        p <- (m2-xs0[2]) / (xs0[1]-xs0[2])
         ps0 <- c(p, 1-p)
         ## Rejection rates, m2, and kappa at LF solution
         primal <- c(sum(c(r(xs0[1], chi), r(xs0[2], chi))*ps0),
-                   sum(xs0*ps0),
-                   sum(xs0^2*ps0)/sum(xs0*ps0)^2)
+                    sum(xs0*ps0),
+                    sum(xs0^2*ps0)/sum(xs0*ps0)^2)
         ## If LF solution close to dual, no need to check linear program
         if (max(abs(primal-c(rr$objective, m2, kappa))) > 1e-4 && check) {
             ## Add m2 here for cases where it's very small, so we can satisfy
@@ -192,7 +198,7 @@ rho <- function(m2, kappa, chi, check=TRUE, len=5000) {
                                 const.dir = c("==", "==", "<="),
                                 const.rhs = c(1, m2, m2^2*kappa))
             ## 0: success, 2: infeasible
-            if (opt$status!=0 | abs(rr$objective-opt$objval)>=1e-4) {
+            if (opt$status!=0 || abs(rr$objective-opt$objval)>=1e-4) {
                 msg <- paste0("Linear program finds rejection ", opt$objval,
                               ". Direct approach finds rejection ",
                               rr$objective,
@@ -261,11 +267,11 @@ CVb <- function(B, alpha=0.05) {
 cva <- function(m2, kappa=Inf, alpha=0.05, check=TRUE) {
     if (m2 == Inf) {
         return(list(cv=NA, alpha=alpha, x=c(0, m2), p=c(0, 1)))
-    } else if (kappa==1 | m2==0) {
+    } else if (kappa==1 || m2==0) {
         list(cv=CVb(sqrt(m2), alpha), alpha=alpha, x=c(0, m2), p=c(0, 1))
     } else {
         ## For very large values of m2, assume kappa=Inf
-        if (1/m2 < tol & kappa!=Inf) {
+        if (1/m2 < tol && kappa!=Inf) {
             res <- cva(m2, kappa=Inf, alpha=alpha, check=FALSE)
             if (kappa < sum(res$x^2*res$p)/m2^2)
                 warning("Value of m2 (", m2, ") is too large to reliably",
@@ -287,12 +293,12 @@ cva <- function(m2, kappa=Inf, alpha=0.05, check=TRUE) {
                                         c(lo, up), tol=tol)$root
 
         ## If rejection rate is already close to alpha, keep cv under kappa=Inf
-        if (rho(m2, kappa, limits[2])$alpha-alpha < -1e-5)
-            cv <- stats::uniroot(function(chi) rho(m2, kappa, chi,
-                                            check=FALSE)$alpha-alpha,
-                          limits, tol=tol)$root
-        else
+        if (rho(m2, kappa, limits[2])$alpha-alpha < -1e-5) {
+            ff <- function(chi) rho(m2, kappa, chi, check=FALSE)$alpha-alpha
+            cv <- stats::uniroot(ff, limits, tol=tol)$root
+        } else {
             cv <- limits[2]
+        }
         c(cv=cv, rho(m2, kappa, cv, check=check, len=5000))
     }
 }

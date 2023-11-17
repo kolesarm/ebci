@@ -9,12 +9,12 @@ test_that("Test L'Hospital rule approximations are accurate", {
     expect_lt(maxx, 1e-8)
     expect_gt(maxx, 1e-10)
 
-    ff <- function(c0) r2(2e-6, c0)-dnorm(c0)*c0*(c0^2-3)/6
+    ff <- function(c0) r2(2e-6, c0)-dnorm(c0)*c0 * (c0^2-3)/6
     maxx <- max(abs(vapply(xx, ff, numeric(1))))
     expect_lt(maxx, 1e-7)
     expect_gt(maxx, 1e-8)
 
-    ff <- function(c0) r3(2e-4, c0)-dnorm(c0)*(c0^5-10*c0^3+15*c0)/60
+    ff <- function(c0) r3(2e-4, c0)-dnorm(c0) * (c0^5-10*c0^3+15*c0)/60
     maxx <- max(abs(vapply(xx, ff, numeric(1))))
     expect_lt(maxx, 4e-6)
     expect_gt(maxx, 1e-6)
