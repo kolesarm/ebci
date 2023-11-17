@@ -30,13 +30,6 @@
 ## #'
 ## #' \item{\code{m2}}{The second moment of the normalized bias,
 ## #' \eqn{(1/w-1)^{2}S}{(1/w-1)^2*S}}}
-## #' @references{
-## #'
-## #' \cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
-## #' (2020): Robust Empirical Bayes Confidence Intervals,
-## #' \url{https://arxiv.org/abs/2004.03448}}
-## #'
-## #' }
 ## #' @examples
 ## #' w_opt(4, 3)
 ## #' ## Use precomputed critical value table
@@ -94,13 +87,6 @@ w_opt <- function(S, kappa, alpha=0.05, cv_tbl=NULL) {
 ## #' times the standard error \eqn{\sigma}{sigma} of preliminary estimator.}
 ## #'
 ## #' \item{\code{m2}}{Second moment of the normalized bias, \code{1/m2}.}
-## #'
-## #' }
-## #' @references{
-## #'
-## #' \cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
-## #' (2020): Robust Empirical Bayes Confidence Intervals,
-## #' \url{https://arxiv.org/abs/2004.03448}}
 ## #'
 ## #' }
 ## #' @examples
@@ -241,14 +227,14 @@ moments <- function(eps, se, wgt, fs_correction="PMT", mu2=NULL, kappa=NULL) {
 #' }
 #' @references{
 #'
-#' \cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
-#' (2020): Robust Empirical Bayes Confidence Intervals,
-#' \url{https://arxiv.org/abs/2004.03448}}
+#' \cite{Tim Armstrong, Michal Kolesár, and Mikkel Plagborg-Møller. Robust
+#' empirical Bayes confidence intervals. Econometrica, 90(6):2567–2602, November
+#' 2022. \doi{10.3982/ECTA18597}.}
 #'
 #' }
 #' @examples
 #' ## Same specification as in empirical example in Armstrong, Kolesár
-#' ## and Plagborg-Møller (2020), but only use data on NY commuting zones
+#' ## and Plagborg-Møller (2022), but only use data on NY commuting zones
 #' r <- ebci(theta25 ~ stayer25, data=cz[cz$state=="NY", ],
 #'           se=se25, weights=1/se25^2)
 #' @export

@@ -1,11 +1,11 @@
-## ---- include=FALSE, cache=FALSE----------------------------------------------
+## ----include=FALSE, cache=FALSE-----------------------------------------------
 library("knitr")
 knitr::opts_knit$set(self.contained = FALSE)
 knitr::opts_chunk$set(tidy = TRUE, collapse=TRUE, comment = "#>",
                       tidy.opts=list(blank=FALSE, width.cutoff=55))
 
-## -----------------------------------------------------------------------------
-library("ebci")
+## ----setup--------------------------------------------------------------------
+library(ebci)
 ## If m_2=0, then we get the usual critical value
 cva(m2=0, kappa=Inf, alpha=0.05)$cv
 ## Otherwise the critical value is larger:
@@ -40,8 +40,9 @@ df <- (cbind(cz[!is.na(cz$se25), ], r$df))
 df <- df[df$state=="NY", ]
 
 knitr::kable(data.frame(cz=df$czname, unshrunk_estimate=df$theta25,
-             estimate=df$th_eb,
-             lower_ci=df$th_eb-df$len_eb, upper_ci=df$th_eb+df$len_eb),
+                        estimate=df$th_eb,
+                        lower_ci=df$th_eb-df$len_eb,
+                        upper_ci=df$th_eb+df$len_eb),
              digits=3)
 
 ## -----------------------------------------------------------------------------

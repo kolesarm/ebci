@@ -223,7 +223,7 @@ CVb <- function(B, alpha=0.05) {
 #' Compute average coverage critical value under moment constraints.
 #'
 #' Computes the critical value \eqn{cva_{\alpha}(m_{2}, \kappa)}{cva_alpha(m_2,
-#' kappa)} from Armstrong, Kolesár, and Plagborg-Møller (2020).
+#' kappa)} from Armstrong, Kolesár, and Plagborg-Møller (2022).
 #' @param m2 Bound on second moment of the normalized bias, \eqn{m_{2}}{m_2}
 #' @param kappa Bound on the kurtosis of the normalized bias,
 #'     \eqn{\kappa}{kappa}
@@ -250,9 +250,9 @@ CVb <- function(B, alpha=0.05) {
 #' }
 #' @references{
 #'
-#' \cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
-#' (2020): Robust Empirical Bayes Confidence Intervals,
-#' \url{https://arxiv.org/abs/2004.03448}}
+#' \cite{Tim Armstrong, Michal Kolesár, and Mikkel Plagborg-Møller. Robust
+#' empirical Bayes confidence intervals. Econometrica, 90(6):2567–2602, November
+#' 2022. \doi{10.3982/ECTA18597}.}
 #'
 #' }
 #' @examples

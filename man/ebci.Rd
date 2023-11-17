@@ -122,16 +122,16 @@ as length-optimal robust EBCIs.
 }
 \examples{
 ## Same specification as in empirical example in Armstrong, Kolesár
-## and Plagborg-Møller (2020), but only use data on NY commuting zones
+## and Plagborg-Møller (2022), but only use data on NY commuting zones
 r <- ebci(theta25 ~ stayer25, data=cz[cz$state=="NY", ],
           se=se25, weights=1/se25^2)
 }
 \references{
 {
 
-\cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
-(2020): Robust Empirical Bayes Confidence Intervals,
-\url{https://arxiv.org/abs/2004.03448}}
+\cite{Tim Armstrong, Michal Kolesár, and Mikkel Plagborg-Møller. Robust
+empirical Bayes confidence intervals. Econometrica, 90(6):2567–2602, November
+2022. \doi{10.3982/ECTA18597}.}
 
 }
 }

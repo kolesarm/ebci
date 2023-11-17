@@ -39,7 +39,7 @@ squared normalized bias, \eqn{b^2}.}
 }
 \description{
 Computes the critical value \eqn{cva_{\alpha}(m_{2}, \kappa)}{cva_alpha(m_2,
-kappa)} from Armstrong, Kolesár, and Plagborg-Møller (2020).
+kappa)} from Armstrong, Kolesár, and Plagborg-Møller (2022).
 }
 \examples{
 # Usual critical value
@@ -53,9 +53,9 @@ cva(m2=4, kappa=3, alpha=0.05)
 \references{
 {
 
-\cite{Armstrong, Timothy B., Kolesár, Michal, and Plagborg-Møller, Mikkel
-(2020): Robust Empirical Bayes Confidence Intervals,
-\url{https://arxiv.org/abs/2004.03448}}
+\cite{Tim Armstrong, Michal Kolesár, and Mikkel Plagborg-Møller. Robust
+empirical Bayes confidence intervals. Econometrica, 90(6):2567–2602, November
+2022. \doi{10.3982/ECTA18597}.}
 
 }
 }
