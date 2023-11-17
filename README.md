@@ -10,7 +10,7 @@ This R package implements robust empirical Bayes confidence intervals from
 of its usage (available through `vignette("ebci")` once the package is
 installed). See [ebci_matlab](https://github.com/mikkelpm/ebci_matlab) for a
 Matlab version of this package, and
-[ebciStata](https://github.com/kolesarm/ebciStata) for a Stata version.
+[ebreg](https://github.com/kolesarm/ebciStata) for a Stata version.
 
 This software package is based upon work supported by the National Science
 Foundation under grant numbers SES-2049765 (Armstrong), SES-22049356 (Kolesár),

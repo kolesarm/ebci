@@ -20,7 +20,7 @@ Description: Computes empirical Bayes confidence estimators and confidence
     that they achieve correct coverage regardless of the distribution of the
     means. If the means are treated as fixed, the intervals have an average
     coverage guarantee. The implementation is based on Armstrong, Kolesár and
-    Plagborg-Møller (2020) <arXiv:2004.03448>.
+    Plagborg-Møller (2022) <doi:10.3982/ECTA18597>.
 Depends: R (>= 4.1.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
