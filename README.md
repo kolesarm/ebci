@@ -1,4 +1,4 @@
-[![R-CMD-check](https://github.com/kolesarm/ebci/workflows/R-CMD-check/badge.svg)](https://github.com/kolesarm/ebci/actions) [![Coverage status](https://codecov.io/gh/kolesarm/ebci/branch/master/graph/badge.svg)](https://codecov.io/github/kolesarm/ebci?branch=master) [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/ebci)](https://cran.r-project.org/package=ebci)
+[![R-CMD-check](https://github.com/kolesarm/ebci/workflows/R-CMD-check/badge.svg)](https://github.com/kolesarm/ebci/actions) [![Coverage status](https://codecov.io/gh/kolesarm/ebci/branch/master/graph/badge.svg)](https://codecov.io/github/kolesarm/ebci?branch=master) [CRAN_Status_Badge](https://www.r-pkg.org/badges/version/ebci)](https://cran.r-project.org/package=ebci) [![Download statistics](https://cranlogs.r-pkg.org/badges/grand-total/ebci)](https://cran.r-project.org/package=ebci)
 
 # ebci
 
